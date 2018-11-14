@@ -1,2 +1,7 @@
 # orb_slam2_TUT
-modified orb_slam2 algorithm
+
+### Real-time monocular SLAM with orb_slam
+	- Feature-based (indirect) SLAM
+	- Developed in ROS framework
+	
+
