@@ -23,20 +23,16 @@ rm -rf build/ lib/
 #cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
 #make -j$NUM_PROC
 
-echo "Uncompress vocabulary ..."
+echo "-----------------------Uncompressing vocabulary-----------------------"
 cd "$BASEDIR/Vocabulary"
 rm -rf ORBvoc.txt
 
 #tar -xf ORBvoc.txt.tar.gz
 
-echo "Configuring and building ORB_SLAM2 ..."
-cd "$BASEDIR"
-rm -rf build/ lib/
-
+echo "-----------------------Configuring & building ORB_SLAM2-----------------------"
 
 cd "$BASEDIR/Examples/Monocular"
 rm -rf mono mono_euroc mono_kitti mono_tum
-
 
 cd "$BASEDIR/Examples/RGB-D"
 rm -rf rgbd_tum
@@ -44,11 +40,13 @@ rm -rf rgbd_tum
 cd "$BASEDIR/Examples/Stereo"
 rm -rf stereo_kitti stereo_euroc
 
+cd "$BASEDIR"
+rm -rf build/ lib/
+
 #mkdir build
 #cd build
 #cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
 #make -j$NUM_PROC
-
 
 echo "-----------------------Compiling ORB_SLAM2 >>>(ROS)<<< nodes-----------------------"
 
@@ -57,6 +55,5 @@ rm -rf cameraPub Mono MonoAR RGBD Stereo build/ lib/
 
 #mkdir build
 #cd build
-
 #cmake -DROS_BUILD_TYPE=$BUILD_TYPE ..
 #make -j$NUM_PROC

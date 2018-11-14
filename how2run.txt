@@ -3,6 +3,13 @@ How to compile:
 Go to home:
 
 $ cd ~/
+$ gedit .bashrc
+
+add the following lines to the end of the file:
+
+
+export ROS_PACKAGE_PATH=/home/farid/WS_Farid/orb_slam2_TUT/Examples/ROS:$ROS_PACKAGE_PATH
+
 
 $ source .bashrc
 

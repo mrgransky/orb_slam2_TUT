@@ -94,10 +94,10 @@ int main(int argc, char **argv)
 		
 		sub_img 	= nh.subscribe(camName+"/image_raw", 1, &REAL_TIME_MONOCULAR::imgCallBack,&rt_mono);
 
-		pub_all_cloud 	= nh.advertise		<sensor_msgs::PointCloud2>	("all_point_cloud"	,1);
-		pub_ref_cloud 	= nh.advertise		<sensor_msgs::PointCloud2>	("ref_point_cloud"	,1);
-		pub_cam 	= nh.advertise		<geometry_msgs::PoseStamped>	("logitech"		,1);
-		pub_path 	= nh.advertise		<nav_msgs::Path>		("camera_path"		,1);
+		pub_all_cloud 	= nh.advertise		<sensor_msgs::PointCloud2>	("all_point_cloud"		,1);
+		pub_ref_cloud 	= nh.advertise		<sensor_msgs::PointCloud2>	("ref_point_cloud"		,1);
+		pub_cam 	= nh.advertise		<geometry_msgs::PoseStamped>	(camName+ "pose"		,1);
+		pub_path 	= nh.advertise		<nav_msgs::Path>		(camName+ "path"		,1);
 		
 		ros::spin();
 	}
