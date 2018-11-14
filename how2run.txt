@@ -1,0 +1,23 @@
+How to compile:
+
+Go to home:
+
+$ cd ~/
+
+$ source .bashrc
+
+$ cd /home/farid/WS_Farid/orb_slam_TUT
+
+& ./build_ros.sh
+
+
+1. with a USB camera:
+
+$ roscore
+
+$ cd WS_Farid/orb_slam2_mod/
+
+$ roslaunch ORB_SLAM2 orb_slam2.launch
+
+2. with a dataset:
+

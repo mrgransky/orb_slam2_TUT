@@ -1,0 +1,3 @@
+<launch>
+ <node name="cameraPub" pkg="ORB_SLAM2" type="cameraPub"/>
+</launch>

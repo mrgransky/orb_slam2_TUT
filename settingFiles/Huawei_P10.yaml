@@ -1,0 +1,20 @@
+image_width: 640
+image_height: 480
+camera_name: Android
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [564.3473, 0.000000, 320, 0.000000, 564.3473, 240, 0.000000, 0.000000, 1.000000]
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [0.162864, -1.0854, 0, 0, 1.7738]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 1.000000]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [737.296875, 0.000000, 302.288860, 0.000000, 0.000000, 706.384155, 265.509636, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000]

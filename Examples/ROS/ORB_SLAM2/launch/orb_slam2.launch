@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<launch>
+	<include file="/home/farid/WS_Farid/orb_slam2_TUT/Examples/ROS/ORB_SLAM2/launch/bringup_webcam.launch"/>
+
+	<!--<include file="/home/farid/WS_Farid/orb_slam2_TUT/Examples/ROS/ORB_SLAM2/launch/pc2laserScan.launch"/>-->
+	<!--<include file="/home/farid/WS_Farid/orb_slam2_TUT/Examples/ROS/ORB_SLAM2/launch/run_gmapping.launch"/>-->
+	
+	<include file="/home/farid/WS_Farid/orb_slam2_TUT/Examples/ROS/ORB_SLAM2/launch/run_octomap.launch"/>
+
+
+	<node name="rviz" pkg="rviz" type="rviz" args="-d /home/farid/WS_Farid/orb_slam2_TUT/Examples/ROS/ORB_SLAM2/rviz/2d_grid.rviz"/>
+
+	<!--<node name="Mono" pkg="ORB_SLAM2" type="Mono" args= "/home/farid/WS_Farid/orb_slam2_TUT/Vocabulary/ORBvoc.txt /home/farid/WS_Farid/orb_slam2_TUT/settingFiles/my_logitech.yaml logitech_B525" />-->
+
+	<node name="Mono" pkg="ORB_SLAM2" type="Mono" args= "/home/farid/WS_Farid/orb_slam2_TUT/Vocabulary/ORBvoc.txt /home/farid/WS_Farid/orb_slam2_TUT/settingFiles/my_huawei.yaml Android" />
+
+</launch>
+
