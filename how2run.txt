@@ -7,24 +7,12 @@ $ gedit .bashrc
 
 add the following lines to the end of the file:
 
-
-export ROS_PACKAGE_PATH=/home/farid/WS_Farid/orb_slam2_TUT/Examples/ROS:$ROS_PACKAGE_PATH
-
+	export ROS_PACKAGE_PATH=/home/farid/WS_Farid/orb_slam2_TUT/Examples/ROS:$ROS_PACKAGE_PATH
 
 $ source .bashrc
 
-$ cd /home/farid/WS_Farid/orb_slam_TUT
+$ cd ~/home/farid/WS_Farid/orb_slam_TUT
 
-& ./build_ros.sh
-
-
-1. with a USB camera:
-
-$ roscore
-
-$ cd WS_Farid/orb_slam2_mod/
+& ./build_project.sh
 
 $ roslaunch ORB_SLAM2 orb_slam2.launch
-
-2. with a dataset:
-
