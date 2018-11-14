@@ -1,1 +1,0 @@
-This is my fist commit to orb_SLAM project.
