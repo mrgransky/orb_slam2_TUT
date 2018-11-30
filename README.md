@@ -1,6 +1,6 @@
 # orb_slam2_TUT
-
-### Real-time monocular SLAM with orb_slam
+# ORB_VISLAM
+### Real-time monocular SLAM with VI
 	- Feature-based (indirect) SLAM
 	- Developed in ROS framework
 	
