@@ -1,44 +1,55 @@
-/**
-* This file is part of ORB-SLAM2.
-*
-* Copyright (C) 2014-2016 Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
-* For more information see <https://github.com/raulmur/ORB_SLAM2>
-*
-* ORB-SLAM2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM2 is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
-*/
 
 #include "LoopClosing.h"
-
 #include "Sim3Solver.h"
-
 #include "Converter.h"
-
 #include "Optimizer.h"
-
 #include "ORBmatcher.h"
 
-#include<mutex>
-#include<thread>
+#include <mutex>
+#include <thread>
 
+using namespace std;
+using namespace cv;
 
 namespace ORB_SLAM2
 {
 
+//-------------------------------------------------------------------------------------------
+// ------------------------------Visual Inerial Added!------------------------------------- //
+//-------------------------------------------------------------------------------------------
+
+bool LoopClosing::GetMapUpdateFlagForTracking()
+{
+    unique_lock<mutex> lock(mMutexMapUpdateFlag);
+    return mbMapUpdateFlagForTracking;
+}
+
+void LoopClosing::SetMapUpdateFlagInTracking(bool bflag)
+{
+    unique_lock<mutex> lock(mMutexMapUpdateFlag);
+    mbMapUpdateFlagForTracking = bflag;
+}
+
+//-------------------------------------------------------------------------------------------
+// ------------------------------Visual Inerial Added!------------------------------------- //
+//-------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
 LoopClosing::LoopClosing(Map *pMap, KeyFrameDatabase *pDB, ORBVocabulary *pVoc, const bool bFixScale):
-    mbResetRequested(false), mbFinishRequested(false), mbFinished(true), mpMap(pMap),
-    mpKeyFrameDB(pDB), mpORBVocabulary(pVoc), mpMatchedKF(NULL), mLastLoopKFid(0), mbRunningGBA(false), mbFinishedGBA(true),
-    mbStopGBA(false), mpThreadGBA(NULL), mbFixScale(bFixScale), mnFullBAIdx(0)
+			mbResetRequested(false), mbFinishRequested(false), mbFinished(true), 
+			mpMap(pMap), mpKeyFrameDB(pDB), mpORBVocabulary(pVoc), 
+			mpMatchedKF(NULL), mLastLoopKFid(0), mbRunningGBA(false), 
+			mbFinishedGBA(true), mbStopGBA(false), mpThreadGBA(NULL), mbFixScale(bFixScale), mnFullBAIdx(0)
 {
     mnCovisibilityConsistencyTh = 3;
 }
@@ -461,8 +472,8 @@ void LoopClosing::CorrectLoop()
                 CorrectedSim3[pKFi]=g2oCorrectedSiw;
             }
 
-            cv::Mat Riw = Tiw.rowRange(0,3).colRange(0,3);
-            cv::Mat tiw = Tiw.rowRange(0,3).col(3);
+            Mat Riw = Tiw.rowRange(0,3).colRange(0,3);
+            Mat tiw = Tiw.rowRange(0,3).col(3);
             g2o::Sim3 g2oSiw(Converter::toMatrix3d(Riw),Converter::toVector3d(tiw),1.0);
             //Pose without correction
             NonCorrectedSim3[pKFi]=g2oSiw;
@@ -489,11 +500,11 @@ void LoopClosing::CorrectLoop()
                     continue;
 
                 // Project with non-corrected pose and project back with corrected pose
-                cv::Mat P3Dw = pMPi->GetWorldPos();
+                Mat P3Dw = pMPi->GetWorldPos();
                 Eigen::Matrix<double,3,1> eigP3Dw = Converter::toVector3d(P3Dw);
                 Eigen::Matrix<double,3,1> eigCorrectedP3Dw = g2oCorrectedSwi.map(g2oSiw.map(eigP3Dw));
 
-                cv::Mat cvCorrectedP3Dw = Converter::toCvMat(eigCorrectedP3Dw);
+                Mat cvCorrectedP3Dw = Converter::toCvMat(eigCorrectedP3Dw);
                 pMPi->SetWorldPos(cvCorrectedP3Dw);
                 pMPi->mnCorrectedByKF = mpCurrentKF->mnId;
                 pMPi->mnCorrectedReference = pKFi->mnId;
@@ -507,7 +518,7 @@ void LoopClosing::CorrectLoop()
 
             eigt *=(1./s); //[R t/s;0 1]
 
-            cv::Mat correctedTiw = Converter::toCvSE3(eigR,eigt);
+            Mat correctedTiw = Converter::toCvSE3(eigR,eigt);
 
             pKFi->SetPose(correctedTiw);
 
@@ -644,10 +655,23 @@ void LoopClosing::ResetIfRequested()
 
 void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
 {
-    cout << "Starting Global Bundle Adjustment" << endl;
+    chrono::steady_clock::time_point begin= chrono::steady_clock::now();
+    cout << "\n\nStarting Global Bundle Adjustment" << endl;
 
     int idx =  mnFullBAIdx;
-    Optimizer::GlobalBundleAdjustemnt(mpMap,10,&mbStopGBA,nLoopKF,false);
+
+
+
+
+
+    // ------------------------------Visual Inerial Added!------------------------------------- //
+    //Optimizer::GlobalBundleAdjustemnt(mpMap,10,&mbStopGBA,nLoopKF,false);
+    Optimizer::GlobalBundleAdjustmentNavStatePRV(mpMap,mpLocalMapper->GetGravityVec(),10,&mbStopGBA,nLoopKF,false);
+    // ------------------------------Visual Inerial Added!------------------------------------- //
+
+
+
+
 
     // Update all MapPoints and KeyFrames
     // Local Mapping was active during BA, that means that there might be new keyframes
@@ -746,6 +770,11 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
         mbFinishedGBA = true;
         mbRunningGBA = false;
     }
+
+
+	chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
+	cout << "\n\nG_BA Time = " << chrono::duration_cast<chrono::microseconds>(end - begin).count() << " [msec.]" << endl;
+
 }
 
 void LoopClosing::RequestFinish()

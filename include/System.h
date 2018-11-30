@@ -15,6 +15,8 @@
 #include "ORBVocabulary.h"
 #include "Viewer.h"
 
+#include "IMU/imuData.h"
+
 namespace ORB_SLAM2
 {
 
@@ -58,10 +60,16 @@ public:
 
 	System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer = true);
 
-	cv::Mat TrackStereo	(const cv::Mat &imLeft, const cv::Mat &imRight, 	const double &timestamp);
-	cv::Mat TrackRGBD	(const cv::Mat &im, 	const cv::Mat &depthmap, 	const double &timestamp);
-	cv::Mat TrackMonocular	(const cv::Mat &im, 					const double &timestamp);
-	
+	cv::Mat TrackStereo	(const cv::Mat &imLeft, const cv::Mat &imRight, 		const double &timestamp);
+	cv::Mat TrackRGBD	(const cv::Mat &im, 	const cv::Mat &depthmap, 		const double &timestamp);
+	cv::Mat TrackMonocular	(const cv::Mat &im, 						const double &timestamp);
+
+	// ------------------------------Visual Inerial Added!------------------------------------- //
+	cv::Mat TrackMonoVI	(const cv::Mat &im, 	const std::vector<IMUData> &vimu, 	const double &timestamp);
+	bool bLocalMapAcceptKF(void);
+	void SaveKeyFrameTrajectoryNavState(const string& filename);
+	// ------------------------------Visual Inerial Added!------------------------------------- //
+
 	std::vector<cv::Mat> getCurrentTrajectory();
 
 	void ActivateLocalizationMode();
@@ -78,7 +86,7 @@ public:
 	void SaveKeyFrameTrajectoryTUM(const string &filename);
 	void SaveTrajectoryKITTI(const string &filename);
 
-	void CreatePCD();
+	void CreatePCD(const string &filename);
 
 	int GetTrackingState();
 

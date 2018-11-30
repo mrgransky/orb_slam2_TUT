@@ -102,8 +102,9 @@ int main(int argc, char **argv)
 		ros::spin();
 	}
 	// Save camera trajectory
-	mySLAM->SaveKeyFrameTrajectoryTUM("KeyFrameTraj_ROS.txt");    
-	mySLAM->CreatePCD();
+	mySLAM->SaveKeyFrameTrajectoryTUM("KeyFrameTraj_ROS.txt");
+	mySLAM->SaveTrajectoryTUM("KeyFrameTraj_ROS.txt");
+	mySLAM->CreatePCD("point_cloud.pcd");
 
 	cout << "\n\nprocess ended, saving corresponding point cloud...\n" << endl;
 

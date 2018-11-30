@@ -15,8 +15,34 @@ namespace ORB_SLAM2
 class MapPoint;
 class KeyFrame;
 
+// ------------------------------Visual Inerial Added!------------------------------------- //
+
+class KFIdComapre
+{
+public:
+    bool operator()(const KeyFrame* kfleft,const KeyFrame* kfright) const;
+};
+
+
+// ------------------------------Visual Inerial Added!------------------------------------- //
+
+
+
+
 class Map
 {
+
+
+
+// ------------------------------Visual Inerial Added!------------------------------------- //
+
+public:
+    // Update after an absolute scale is available
+    void UpdateScale(const double &scale);
+
+// ------------------------------Visual Inerial Added!------------------------------------- //
+
+
 public:
     Map();
 

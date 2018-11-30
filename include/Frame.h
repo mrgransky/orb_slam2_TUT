@@ -1,22 +1,3 @@
-/**
-* This file is part of ORB-SLAM2.
-*
-* Copyright (C) 2014-2016 Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
-* For more information see <https://github.com/raulmur/ORB_SLAM2>
-*
-* ORB-SLAM2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM2 is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
-*/
 
 #ifndef FRAME_H
 #define FRAME_H
@@ -32,6 +13,11 @@
 
 #include <opencv2/opencv.hpp>
 
+
+#include <IMU/imuData.h>
+#include <IMU/navState.h>
+#include <IMU/imuPreintegrator.h>
+
 namespace ORB_SLAM2
 {
 #define FRAME_GRID_ROWS 48
@@ -42,6 +28,40 @@ class KeyFrame;
 
 class Frame
 {
+
+
+// ------------------------------Visual Inerial Added!------------------------------------- //
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    // Constructor for Monocular VI
+    Frame(const cv::Mat &imGray, const double &timeStamp, const std::vector<IMUData> &vimu, ORBextractor* extractor,ORBVocabulary* voc,
+          cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, KeyFrame* pLastKF=NULL);
+
+    void ComputeIMUPreIntSinceLastFrame(const Frame* pLastF, IMUPreintegrator& imupreint) const;
+    void UpdatePoseFromNS(const cv::Mat &Tbc);
+    void SetInitialNavStateAndBias(const NavState& ns);
+    void UpdateNavState(const IMUPreintegrator& imupreint, const Vector3d& gw);
+    const NavState& GetNavState(void) const;
+    void SetNavState(const NavState& ns);
+    void SetNavStateBiasGyr(const Vector3d &bg);
+    void SetNavStateBiasAcc(const Vector3d &ba);
+
+    // IMU Data from last Frame to this Frame
+    std::vector<IMUData> mvIMUDataSinceLastFrame;
+
+    // For pose optimization, use as prior and prior information(inverse covariance)
+    Matrix<double,15,15> mMargCovInv;
+    NavState mNavStatePrior;
+
+protected:
+	NavState mNavState;
+// ------------------------------Visual Inerial Added!------------------------------------- //
+
+
+
+
+
 public:
     Frame();
 

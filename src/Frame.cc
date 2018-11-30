@@ -1,27 +1,12 @@
-/**
-* This file is part of ORB-SLAM2.
-*
-* Copyright (C) 2014-2016 Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
-* For more information see <https://github.com/raulmur/ORB_SLAM2>
-*
-* ORB-SLAM2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM2 is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
-*/
 
 #include "Frame.h"
 #include "Converter.h"
 #include "ORBmatcher.h"
 #include <thread>
+
+using namespace cv;
+using namespace std;
+
 
 namespace ORB_SLAM2
 {
@@ -32,22 +17,239 @@ float Frame::cx, Frame::cy, Frame::fx, Frame::fy, Frame::invfx, Frame::invfy;
 float Frame::mnMinX, Frame::mnMinY, Frame::mnMaxX, Frame::mnMaxY;
 float Frame::mfGridElementWidthInv, Frame::mfGridElementHeightInv;
 
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------------------------
+// ------------------------------Visual Inerial Added!------------------------------------- //
+//-------------------------------------------------------------------------------------------
+
+void Frame::ComputeIMUPreIntSinceLastFrame(const Frame* pLastF, IMUPreintegrator& IMUPreInt) const
+{
+    // Reset pre-integrator first
+    IMUPreInt.reset();
+
+    const std::vector<IMUData>& vIMUSInceLastFrame = mvIMUDataSinceLastFrame;
+
+    Vector3d bg = pLastF->GetNavState().Get_BiasGyr();
+    Vector3d ba = pLastF->GetNavState().Get_BiasAcc();
+
+    // remember to consider the gap between the last KF and the first IMU
+    {
+        const IMUData& imu = vIMUSInceLastFrame.front();
+        double dt = imu._t - pLastF->mTimeStamp;
+        IMUPreInt.update(imu._g - bg, imu._a - ba, dt);
+
+        // Test log
+        if(dt < 0)
+        {
+            cerr<<std::fixed<<std::setprecision(3)<<"dt = "<<dt<<", this frame vs last imu time: "<<pLastF->mTimeStamp<<" vs "<<imu._t<<endl;
+            std::cerr.unsetf ( std::ios::showbase );                // deactivate showbase
+        }
+    }
+    // integrate each imu
+    for(size_t i=0; i<vIMUSInceLastFrame.size(); i++)
+    {
+        const IMUData& imu = vIMUSInceLastFrame[i];
+        double nextt;
+        if(i==vIMUSInceLastFrame.size()-1)
+            nextt = mTimeStamp;         // last IMU, next is this KeyFrame
+        else
+            nextt = vIMUSInceLastFrame[i+1]._t;  // regular condition, next is imu data
+
+        // delta time
+        double dt = nextt - imu._t;
+        // update pre-integrator
+        IMUPreInt.update(imu._g - bg, imu._a - ba, dt);
+
+        // Test log
+        if(dt <= 0)
+        {
+            cerr<<std::fixed<<std::setprecision(3)<<"dt = "<<dt<<", this vs next time: "<<imu._t<<" vs "<<nextt<<endl;
+            std::cerr.unsetf ( std::ios::showbase );                // deactivate showbase
+        }
+    }
+}
+
+void Frame::UpdatePoseFromNS(const cv::Mat &Tbc)
+{
+    cv::Mat Rbc = Tbc.rowRange(0,3).colRange(0,3).clone();
+    cv::Mat Pbc = Tbc.rowRange(0,3).col(3).clone();
+
+    cv::Mat Rwb = Converter::toCvMat(mNavState.Get_RotMatrix());
+    cv::Mat Pwb = Converter::toCvMat(mNavState.Get_P());
+
+    cv::Mat Rcw = (Rwb*Rbc).t();
+    cv::Mat Pwc = Rwb*Pbc + Pwb;
+    cv::Mat Pcw = -Rcw*Pwc;
+
+    cv::Mat Tcw = cv::Mat::eye(4,4,CV_32F);
+    Rcw.copyTo(Tcw.rowRange(0,3).colRange(0,3));
+    Pcw.copyTo(Tcw.rowRange(0,3).col(3));
+
+    SetPose(Tcw);
+}
+
+void Frame::UpdateNavState(const IMUPreintegrator& imupreint, const Vector3d& gw)
+{
+    Converter::updateNS(mNavState,imupreint,gw);
+}
+
+const NavState& Frame::GetNavState(void) const
+{
+    return mNavState;
+}
+
+void Frame::SetInitialNavStateAndBias(const NavState& ns)
+{
+    mNavState = ns;
+    // Set bias as bias+delta_bias, and reset the delta_bias term
+    mNavState.Set_BiasGyr(ns.Get_BiasGyr()+ns.Get_dBias_Gyr());
+    mNavState.Set_BiasAcc(ns.Get_BiasAcc()+ns.Get_dBias_Acc());
+    mNavState.Set_DeltaBiasGyr(Vector3d::Zero());
+    mNavState.Set_DeltaBiasAcc(Vector3d::Zero());
+}
+
+
+void Frame::SetNavStateBiasGyr(const Vector3d &bg)
+{
+    mNavState.Set_BiasGyr(bg);
+}
+
+void Frame::SetNavStateBiasAcc(const Vector3d &ba)
+{
+    mNavState.Set_BiasAcc(ba);
+}
+
+void Frame::SetNavState(const NavState& ns)
+{
+    mNavState = ns;
+}
+
+Frame::Frame(const cv::Mat &imGray, const double &timeStamp, const std::vector<IMUData> &vimu, ORBextractor* extractor,ORBVocabulary* voc,
+             cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, KeyFrame* pLastKF)
+    :mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
+     mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth)
+{
+    // Copy IMU data
+    mvIMUDataSinceLastFrame = vimu;
+
+    // Frame ID
+    mnId=nNextId++;
+
+    // Scale Level Info
+    mnScaleLevels = mpORBextractorLeft->GetLevels();
+    mfScaleFactor = mpORBextractorLeft->GetScaleFactor();
+    mfLogScaleFactor = log(mfScaleFactor);
+    mvScaleFactors = mpORBextractorLeft->GetScaleFactors();
+    mvInvScaleFactors = mpORBextractorLeft->GetInverseScaleFactors();
+    mvLevelSigma2 = mpORBextractorLeft->GetScaleSigmaSquares();
+    mvInvLevelSigma2 = mpORBextractorLeft->GetInverseScaleSigmaSquares();
+
+    // ORB extraction
+    ExtractORB(0,imGray);
+
+    N = mvKeys.size();
+
+    if(mvKeys.empty())
+        return;
+
+    UndistortKeyPoints();
+
+    // Set no stereo information
+    mvuRight = vector<float>(N,-1);
+    mvDepth = vector<float>(N,-1);
+
+    mvpMapPoints = vector<MapPoint*>(N,static_cast<MapPoint*>(NULL));
+    mvbOutlier = vector<bool>(N,false);
+
+    // This is done only for the first Frame (or after a change in the calibration)
+    if(mbInitialComputations)
+    {
+        ComputeImageBounds(imGray);
+
+        mfGridElementWidthInv=static_cast<float>(FRAME_GRID_COLS)/static_cast<float>(mnMaxX-mnMinX);
+        mfGridElementHeightInv=static_cast<float>(FRAME_GRID_ROWS)/static_cast<float>(mnMaxY-mnMinY);
+
+        fx = K.at<float>(0,0);
+        fy = K.at<float>(1,1);
+        cx = K.at<float>(0,2);
+        cy = K.at<float>(1,2);
+        invfx = 1.0f/fx;
+        invfy = 1.0f/fy;
+
+        mbInitialComputations=false;
+    }
+
+    mb = mbf/fx;
+
+    AssignFeaturesToGrid();
+}
+
+
+
+
+//-------------------------------------------------------------------------------------------
+// ------------------------------Visual Inerial Added!------------------------------------- //
+//-------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Frame::Frame()
 {}
 
 //Copy Constructor
-Frame::Frame(const Frame &frame)
-    :mpORBvocabulary(frame.mpORBvocabulary), mpORBextractorLeft(frame.mpORBextractorLeft), mpORBextractorRight(frame.mpORBextractorRight),
-     mTimeStamp(frame.mTimeStamp), mK(frame.mK.clone()), mDistCoef(frame.mDistCoef.clone()),
-     mbf(frame.mbf), mb(frame.mb), mThDepth(frame.mThDepth), N(frame.N), mvKeys(frame.mvKeys),
-     mvKeysRight(frame.mvKeysRight), mvKeysUn(frame.mvKeysUn),  mvuRight(frame.mvuRight),
-     mvDepth(frame.mvDepth), mBowVec(frame.mBowVec), mFeatVec(frame.mFeatVec),
-     mDescriptors(frame.mDescriptors.clone()), mDescriptorsRight(frame.mDescriptorsRight.clone()),
-     mvpMapPoints(frame.mvpMapPoints), mvbOutlier(frame.mvbOutlier), mnId(frame.mnId),
-     mpReferenceKF(frame.mpReferenceKF), mnScaleLevels(frame.mnScaleLevels),
-     mfScaleFactor(frame.mfScaleFactor), mfLogScaleFactor(frame.mfLogScaleFactor),
-     mvScaleFactors(frame.mvScaleFactors), mvInvScaleFactors(frame.mvInvScaleFactors),
-     mvLevelSigma2(frame.mvLevelSigma2), mvInvLevelSigma2(frame.mvInvLevelSigma2)
+Frame::Frame(const Frame &frame):
+	mpORBvocabulary(frame.mpORBvocabulary), 
+	mpORBextractorLeft(frame.mpORBextractorLeft), 
+	mpORBextractorRight(frame.mpORBextractorRight),
+	
+	mTimeStamp(frame.mTimeStamp), 
+	mK(frame.mK.clone()), 
+	mDistCoef(frame.mDistCoef.clone()),
+	mbf(frame.mbf), mb(frame.mb), 
+	mThDepth(frame.mThDepth), 
+	N(frame.N), 
+	mvKeys(frame.mvKeys), mvKeysRight(frame.mvKeysRight), mvKeysUn(frame.mvKeysUn), mvuRight(frame.mvuRight),
+	
+	mvDepth(frame.mvDepth), mBowVec(frame.mBowVec), mFeatVec(frame.mFeatVec),
+	
+	mDescriptors(frame.mDescriptors.clone()), mDescriptorsRight(frame.mDescriptorsRight.clone()),
+
+	mvpMapPoints(frame.mvpMapPoints), 
+	mvbOutlier(frame.mvbOutlier), mnId(frame.mnId),
+	mpReferenceKF(frame.mpReferenceKF), mnScaleLevels(frame.mnScaleLevels),
+	mfScaleFactor(frame.mfScaleFactor), mfLogScaleFactor(frame.mfLogScaleFactor),
+	mvScaleFactors(frame.mvScaleFactors), mvInvScaleFactors(frame.mvInvScaleFactors),
+	mvLevelSigma2(frame.mvLevelSigma2), mvInvLevelSigma2(frame.mvInvLevelSigma2)
 {
     for(int i=0;i<FRAME_GRID_COLS;i++)
         for(int j=0; j<FRAME_GRID_ROWS; j++)
@@ -58,9 +260,13 @@ Frame::Frame(const Frame &frame)
 }
 
 
-Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
-    :mpORBvocabulary(voc),mpORBextractorLeft(extractorLeft),mpORBextractorRight(extractorRight), mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
-     mpReferenceKF(static_cast<KeyFrame*>(NULL))
+Frame::Frame(	const Mat &imLeft, const Mat &imRight, 
+		const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, 
+		Mat &K, Mat &distCoef, const float &bf, const float &thDepth):
+			mpORBvocabulary(voc),mpORBextractorLeft(extractorLeft),mpORBextractorRight(extractorRight), 
+			mTimeStamp(timeStamp), mK(K.clone()),
+			mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
+			mpReferenceKF(static_cast<KeyFrame*>(NULL))
 {
     // Frame ID
     mnId=nNextId++;
@@ -116,9 +322,14 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     AssignFeaturesToGrid();
 }
 
-Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
-    :mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
-     mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth)
+Frame::Frame(	const Mat &imGray, const Mat &imDepth, const double &timeStamp, 
+		ORBextractor* extractor,ORBVocabulary* voc, Mat &K, 
+		Mat &distCoef, const float &bf, const float &thDepth):
+			mpORBvocabulary(voc),mpORBextractorLeft(extractor),
+			mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
+			mTimeStamp(timeStamp), mK(K.clone()),
+			mDistCoef(distCoef.clone()), 
+			mbf(bf), mThDepth(thDepth)
 {
     // Frame ID
     mnId=nNextId++;
@@ -171,9 +382,13 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 }
 
 
-Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
-    :mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
-     mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth)
+Frame::Frame(	const Mat &imGray, const double &timeStamp, 
+		ORBextractor* extractor,ORBVocabulary* voc, 
+		Mat &K, Mat &distCoef, const float &bf, const float &thDepth):
+			mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
+			mTimeStamp(timeStamp), mK(K.clone()), 
+			mDistCoef(distCoef.clone()), 
+			mbf(bf), mThDepth(thDepth)
 {
     // Frame ID
     mnId=nNextId++;

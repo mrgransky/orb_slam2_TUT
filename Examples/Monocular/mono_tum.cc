@@ -1,24 +1,3 @@
-/**
-* This file is part of ORB-SLAM2.
-*
-* Copyright (C) 2014-2016 Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
-* For more information see <https://github.com/raulmur/ORB_SLAM2>
-*
-* ORB-SLAM2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM2 is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
-*/
-
-
 #include<iostream>
 #include<algorithm>
 #include<fstream>
@@ -37,7 +16,7 @@ int main(int argc, char **argv)
 {
     if(argc != 4)
     {
-        cerr << endl << "Usage: ./mono_tum [path_to_vocabulary]  [path_to_settings path_to_sequence_folder]" << endl;
+        cerr << endl << "Usage: ./mono_tum [path_to_vocabulary]  [path_to_settings] [path_to_sequence_folder]" << endl;
         return 1;
     }
 
@@ -120,8 +99,9 @@ int main(int argc, char **argv)
     cout << "mean tracking time: " << totaltime/nImages << endl;
 
     // Save camera trajectory
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
-
+    SLAM.SaveKeyFrameTrajectoryTUM("KF_Traj_TUM.txt");
+    SLAM.SaveTrajectoryTUM("Traj_TUM.txt");
+    SLAM.CreatePCD("mono_TUM.pcd");
     return 0;
 }
 

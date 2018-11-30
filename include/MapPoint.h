@@ -16,9 +16,29 @@ class Map;
 class Frame;
 
 
+
+
+
+// ------------------------------Visual Inerial Added!------------------------------------- //
+class cmpKeyFrameId{
+public:
+    bool operator() (const KeyFrame* a, const KeyFrame* b) const ;
+};
+
+typedef std::map<KeyFrame*,size_t,cmpKeyFrameId> mapMapPointObs;
+// ------------------------------Visual Inerial Added!------------------------------------- //
+
+
+
+
 class MapPoint
 {
 public:
+
+    // ------------------------------Visual Inerial Added!------------------------------------- //
+    void UpdateScale(float scale);
+    // ------------------------------Visual Inerial Added!------------------------------------- //
+
     MapPoint(const cv::Mat &Pos, KeyFrame* pRefKF, Map* pMap);
     MapPoint(const cv::Mat &Pos,  Map* pMap, Frame* pFrame, const int &idxF);
 

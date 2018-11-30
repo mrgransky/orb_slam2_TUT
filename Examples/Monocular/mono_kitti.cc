@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 {
     if(argc != 4)
     {
-        cerr << endl << "Syntax: \n./mono_kitti [path_to_vocabulary] [path_to_settings} [path_to_sequence]\n" << endl;
+        cerr << endl << "Syntax: \n./mono_kitti [path_to_vocabulary] [path_to_settings] [path_to_sequence]\n" << endl;
         return 1;
     }
 
@@ -93,13 +93,15 @@ int main(int argc, char **argv)
     {
         totaltime+=vTimesTrack[ni];
     }
-    cout << "-------" << endl << endl;
+    cout << "\n\n---------------------------" << endl;
     cout << "median tracking time: " << vTimesTrack[nImages/2] << endl;
     cout << "mean tracking time: " << totaltime/nImages << endl;
 
     // Save camera trajectory
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTraj.txt");    
-    SLAM.CreatePCD();
+    SLAM.SaveKeyFrameTrajectoryTUM("KF_Traj_KITTI.txt");  
+    SLAM.SaveTrajectoryKITTI("Traj_KITTI.txt");
+  
+    SLAM.CreatePCD("mono_KITTI.pcd");
     return 0;
 }
 

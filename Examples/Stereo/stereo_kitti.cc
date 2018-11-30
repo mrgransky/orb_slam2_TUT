@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 
     // Save camera trajectory
     SLAM.SaveTrajectoryKITTI("camTraj_KITTI.txt");
-    SLAM.CreatePCD();
+    SLAM.CreatePCD("stereo_KITTI.pcd");
     return 0;
 }
 

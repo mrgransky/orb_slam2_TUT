@@ -1,0 +1,6 @@
+$ python Videotofiles.py <path_to_video> <path_to_output_folder> orb-slam2
+
+
+Example:
+
+$ python Videotofiles.py /home/farid/datasets/Jussi/Tunnel_1.MP4 /home/farid/datasets/Jussi/tunnel/ orb-slam2

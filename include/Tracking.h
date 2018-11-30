@@ -1,23 +1,3 @@
-/**
-* This file is part of ORB-SLAM2.
-*
-* Copyright (C) 2014-2016 Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
-* For more information see <https://github.com/raulmur/ORB_SLAM2>
-*
-* ORB-SLAM2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM2 is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
-*/
-
 
 #ifndef TRACKING_H
 #define TRACKING_H
@@ -40,6 +20,12 @@
 
 #include <mutex>
 
+
+
+#include "IMU/imuData.h"
+#include "IMU/configParam.h"
+
+
 namespace ORB_SLAM2
 {
 
@@ -51,16 +37,56 @@ class LoopClosing;
 class System;
 
 class Tracking
-{  
+{
+
+
+
+// ------------------------------Visual Inerial Added!------------------------------------- //
 
 public:
-    Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap,
-             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor);
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    // Flags for relocalization. Create new KF once bias re-computed & flag for preparation for bias re-compute
+    bool mbCreateNewKFAfterReloc;
+    bool mbRelocBiasPrepare;
+    void RecomputeIMUBiasAndCurrentNavstate(NavState& nscur);
+    // 20 Frames are used to compute bias
+    vector<Frame> mv20FramesReloc;
+
+    // Predict the NavState of Current Frame by IMU
+    void PredictNavStateByIMU(bool bMapUpdated);
+    IMUPreintegrator mIMUPreIntInTrack;
+
+    bool TrackWithIMU(bool bMapUpdated=false);
+    bool TrackLocalMapWithIMU(bool bMapUpdated=false);
+
+    ConfigParam* mpParams;
+    cv::Mat GrabImageMonoVI(const cv::Mat &im, const std::vector<IMUData> &vimu, const double &timestamp);
+    // IMU Data since last KF. Append when new data is provided
+    // Should be cleared in 1. initialization beginning, 2. new keyframe created.
+    std::vector<IMUData> mvIMUSinceLastKF;
+    IMUPreintegrator GetIMUPreIntSinceLastKF(Frame* pCurF, KeyFrame* pLastKF, const std::vector<IMUData>& vIMUSInceLastKF);
+    IMUPreintegrator GetIMUPreIntSinceLastFrame(Frame* pCurF, Frame* pLastF);
+
+// ------------------------------Visual Inerial Added!------------------------------------- //
+
+
+
+
+
+
+
+
+
+public:
+    Tracking(	System* 	pSys, 		ORBVocabulary* 	pVoc, FrameDrawer* 	pFrameDrawer, 
+		MapDrawer* 	pMapDrawer, 	Map* 		pMap, KeyFrameDatabase* pKFDB, 
+		const string &strSettingPath, const int sensor);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
-    cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp);
-    cv::Mat GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp);
-    cv::Mat GrabImageMonocular(const cv::Mat &im, const double &timestamp);
+    cv::Mat GrabImageStereo	(const cv::Mat &imRectLeft,	const cv::Mat &imRectRight, 	const double &timestamp);
+    cv::Mat GrabImageRGBD	(const cv::Mat &imRGB,		const cv::Mat &imD, 		const double &timestamp);
+    cv::Mat GrabImageMonocular	(const cv::Mat &im, 						const double &timestamp);
 
     void SetLocalMapper(LocalMapping* pLocalMapper);
     void SetLoopClosing(LoopClosing* pLoopClosing);
@@ -78,13 +104,7 @@ public:
 public:
 
     // Tracking states
-    enum eTrackingState{
-        SYSTEM_NOT_READY=-1,
-        NO_IMAGES_YET=0,
-        NOT_INITIALIZED=1,
-        OK=2,
-        LOST=3
-    };
+    enum eTrackingState{SYSTEM_NOT_READY = -1, NO_IMAGES_YET = 0, NOT_INITIALIZED = 1, OK = 2, LOST = 3};
 
     eTrackingState mState;
     eTrackingState mLastProcessedState;

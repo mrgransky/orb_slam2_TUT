@@ -50,6 +50,21 @@ MapPoint::MapPoint(const cv::Mat &Pos, Map* pMap, Frame* pFrame, const int &idxF
     mnId=nNextId++;
 }
 
+
+
+// ------------------------------Visual Inerial Added!------------------------------------- //
+
+
+void MapPoint::UpdateScale(float scale)
+{
+    SetWorldPos(GetWorldPos()*scale);
+    mfMaxDistance *= scale;
+    mfMinDistance *= scale;
+}
+
+// ------------------------------Visual Inerial Added!------------------------------------- //
+
+
 void MapPoint::SetWorldPos(const cv::Mat &Pos)
 {
     unique_lock<mutex> lock2(mGlobalMutex);

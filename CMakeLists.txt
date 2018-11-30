@@ -1,3 +1,4 @@
+# cmakeList of main project:
 cmake_minimum_required(VERSION 2.8)
 project(ORB_SLAM2)
 
@@ -41,13 +42,19 @@ find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
 find_package(PCL 1.2 REQUIRED)
 
+find_package(Cholmod)
+find_package(BLAS)
+find_package(LAPACK)
+find_package(SuiteSparse REQUIRED)
 
 include_directories(
 ${PROJECT_SOURCE_DIR}
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o
 ${PROJECT_SOURCE_DIR}/include
 ${EIGEN3_INCLUDE_DIR}
 ${Pangolin_INCLUDE_DIRS}
 ${PCL_INCLUDE_DIRS}
+${SUITESPARSE_INCLUDE_DIRS}
 )
 
 link_directories(${PCL_LIBRARY_DIRS})
@@ -75,7 +82,14 @@ src/KeyFrameDatabase.cc
 src/Sim3Solver.cc
 src/Initializer.cc
 src/Viewer.cc
-#src/SlamDataPub.cc
+
+src/IMU/configParam.cc
+src/IMU/imuData.cc
+src/IMU/imuPreintegrator.cc
+src/IMU/navState.cc
+src/IMU/so3.cc
+src/IMU/g2otypes.cc
+
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -86,7 +100,49 @@ ${Pangolin_LIBRARIES}
 ${PCL_COMMON_LIBRARIES} 
 ${PCL_IO_LIBRARIES}
 ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
-${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
+#${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so3
+
+
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_calibration_odom_laser.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_cli.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_core.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_csparse_extension.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_ext_freeglut_minimal.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_hierarchical.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_incremental.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_interactive.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_interface.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_opengl_helper.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_parser.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_simulator.so
+
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_solver_cholmod.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_solver_csparse.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_solver_dense.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_solver_eigen.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_solver_pcg.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_solver_slam2d_linear.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_solver_structure_only.so
+
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_stuff.so
+
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_tutorial_slam2d.so
+
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_data.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_icp.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_sba.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_sclam2d.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_sim3.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_slam2d.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_slam2d_addons.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_slam3d.so
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o_types_slam3d_addons.so
+
+
+${SUITESPARSE_LIBRARIES}
+${BLAS_LIBRARIES}
+${LAPACK_LIBRARIES}
+-lcholmod
 )
 
 # Build examples

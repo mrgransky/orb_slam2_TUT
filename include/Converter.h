@@ -1,38 +1,35 @@
-/**
-* This file is part of ORB-SLAM2.
-*
-* Copyright (C) 2014-2016 Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
-* For more information see <https://github.com/raulmur/ORB_SLAM2>
-*
-* ORB-SLAM2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM2 is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
-*/
+
 
 #ifndef CONVERTER_H
 #define CONVERTER_H
 
 #include<opencv2/core/core.hpp>
 
-#include<Eigen/Dense>
-#include"Thirdparty/g2o/g2o/types/types_six_dof_expmap.h"
-#include"Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
+#include <Eigen/Dense>
 
+//#include "Thirdparty/g2o/g2o/types/types_six_dof_expmap.h"
+//#include "Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
+
+#include "Thirdparty/g2o/g2o/types/sba/types_six_dof_expmap.h"
+#include "Thirdparty/g2o/g2o/types/sim3/types_seven_dof_expmap.h"
+
+#include "IMU/imuPreintegrator.h"
+#include "IMU/navState.h"
 namespace ORB_SLAM2
 {
 
 class Converter
 {
 public:
+
+
+	// ------------------------------Visual Inerial Added!------------------------------------- //
+	static void updateNS(NavState& ns, const IMUPreintegrator& imupreint, const Vector3d& gw);
+	static cv::Mat toCvMatInverse(const cv::Mat &T12);
+	// ------------------------------Visual Inerial Added!------------------------------------- //
+
+
+
     static std::vector<cv::Mat> toDescriptorVector(const cv::Mat &Descriptors);
 
     static g2o::SE3Quat toSE3Quat(const cv::Mat &cvT);

@@ -69,6 +69,8 @@ def CreateVideoimages(videopath, imagefolder,orb):
     if orb: #close the text file
         textfile.close()
 
+print "length of arg = "+ str(len(sys.argv))
+print "arg 3 = "+str(sys.argv[3]) 
 
 if len(sys.argv) == 3: #if the user has provided enough arguments
     #extract the arguments

@@ -1,22 +1,3 @@
-/**
-* This file is part of ORB-SLAM2.
-*
-* Copyright (C) 2014-2016 Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
-* For more information see <https://github.com/raulmur/ORB_SLAM2>
-*
-* ORB-SLAM2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM2 is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
-*/
 
 #ifndef KEYFRAME_H
 #define KEYFRAME_H
@@ -32,6 +13,10 @@
 #include <mutex>
 
 
+#include "IMU/imuData.h"
+#include "IMU/navState.h"
+#include "IMU/imuPreintegrator.h"
+
 namespace ORB_SLAM2
 {
 
@@ -42,6 +27,74 @@ class KeyFrameDatabase;
 
 class KeyFrame
 {
+
+
+
+// ------------------------------Visual Inerial Added!------------------------------------- //
+public:
+ EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB, std::vector<IMUData> vIMUData, KeyFrame* pLastKF=NULL);
+    KeyFrame* GetPrevKeyFrame(void);
+    KeyFrame* GetNextKeyFrame(void);
+    void SetPrevKeyFrame(KeyFrame* pKF);
+    void SetNextKeyFrame(KeyFrame* pKF);
+
+    std::vector<IMUData> GetVectorIMUData(void);
+    void AppendIMUDataToFront(KeyFrame* pPrevKF);
+    void ComputePreInt(void);
+
+    const IMUPreintegrator & GetIMUPreInt(void);
+
+    void UpdateNavStatePVRFromTcw(const cv::Mat &Tcw,const cv::Mat &Tbc);
+    void UpdatePoseFromNS(const cv::Mat &Tbc);
+    void UpdateNavState(const IMUPreintegrator& imupreint, const Vector3d& gw);
+    void SetNavState(const NavState& ns);
+    const NavState& GetNavState(void);
+    void SetNavStateVel(const Vector3d &vel);
+    void SetNavStatePos(const Vector3d &pos);
+    void SetNavStateRot(const Matrix3d &rot);
+    void SetNavStateRot(const Sophus::SO3 &rot);
+    void SetNavStateBiasGyr(const Vector3d &bg);
+    void SetNavStateBiasAcc(const Vector3d &ba);
+    void SetNavStateDeltaBg(const Vector3d &dbg);
+    void SetNavStateDeltaBa(const Vector3d &dba);
+
+    void SetInitialNavStateAndBias(const NavState& ns);
+
+    // Variables used by loop closing
+    NavState mNavStateGBA;       //mTcwGBA
+    NavState mNavStateBefGBA;    //mTcwBefGBA
+
+protected:
+
+    std::mutex mMutexPrevKF;
+    std::mutex mMutexNextKF;
+    KeyFrame* mpPrevKeyFrame;
+    KeyFrame* mpNextKeyFrame;
+
+    // P, V, R, bg, ba, delta_bg, delta_ba (delta_bx is for optimization update)
+    std::mutex mMutexNavState;
+    NavState mNavState;
+
+    // IMU Data from lask KeyFrame to this KeyFrame
+    std::mutex mMutexIMUData;
+    std::vector<IMUData> mvIMUData;
+    IMUPreintegrator mIMUPreInt;
+// ------------------------------Visual Inerial Added!------------------------------------- //
+
+
+
+
+
+
+
+
+
+
+
+
+
 public:
     KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB);
 
