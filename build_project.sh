@@ -2,7 +2,7 @@ echo "----------------------- ORB_SLAM2 -----------------------"
 echo ""
 
 BUILD_TYPE=Release
-NUM_PROC=16
+NUM_PROC=8
 BASEDIR="$PWD"
 
 echo "-------------------Configuring and building Thirdparty/DBoW2------------------------"
