@@ -1009,9 +1009,11 @@ void Tracking::MonocularInitialization()
         // Set Reference Frame
         if(mCurrentFrame.mvKeys.size()>100)
         {
-            mInitialFrame = Frame(mCurrentFrame);
-            mLastFrame = Frame(mCurrentFrame);
+            mInitialFrame 	= Frame(mCurrentFrame);
+            mLastFrame 		= Frame(mCurrentFrame);
+
             mvbPrevMatched.resize(mCurrentFrame.mvKeysUn.size());
+
             for(size_t i=0; i<mCurrentFrame.mvKeysUn.size(); i++)
                 mvbPrevMatched[i]=mCurrentFrame.mvKeysUn[i].pt;
 

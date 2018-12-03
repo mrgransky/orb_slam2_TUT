@@ -21,13 +21,13 @@ long unsigned int KeyFrame::nNextId=0;
 void KeyFrame::UpdateNavStatePVRFromTcw(const Mat &Tcw,const Mat &Tbc)
 {
     unique_lock<mutex> lock(mMutexNavState);
-    Mat Twb = Converter::toCvMatInverse(Tbc*Tcw);
-    Matrix3d Rwb = Converter::toMatrix3d(Twb.rowRange(0,3).colRange(0,3));
-    Vector3d Pwb = Converter::toVector3d(Twb.rowRange(0,3).col(3));
+    Mat Twb 		= Converter::toCvMatInverse(Tbc*Tcw);
+    Matrix3d Rwb 	= Converter::toMatrix3d(Twb.rowRange(0,3).colRange(0,3));
+    Vector3d Pwb 	= Converter::toVector3d(Twb.rowRange(0,3).col(3));
 
-    Matrix3d Rw1 = mNavState.Get_RotMatrix();
-    Vector3d Vw1 = mNavState.Get_V();
-    Vector3d Vw2 = Rwb*Rw1.transpose()*Vw1;   // bV1 = bV2 ==> Rwb1^T*wV1 = Rwb2^T*wV2 ==> wV2 = Rwb2*Rwb1^T*wV1
+    Matrix3d Rw1 	= mNavState.Get_RotMatrix();
+    Vector3d Vw1 	= mNavState.Get_V();
+    Vector3d Vw2 	= Rwb*Rw1.transpose()*Vw1;   // bV1 = bV2 ==> Rwb1^T*wV1 = Rwb2^T*wV2 ==> wV2 = Rwb2*Rwb1^T*wV1
 
     mNavState.Set_Pos(Pwb);
     mNavState.Set_Rot(Rwb);
@@ -45,13 +45,13 @@ void KeyFrame::SetInitialNavStateAndBias(const NavState& ns)
     mNavState.Set_DeltaBiasAcc(Vector3d::Zero());
 }
 
-KeyFrame* KeyFrame::GetPrevKeyFrame(void)
+KeyFrame* KeyFrame::GetPrevKeyFrame()
 {
     unique_lock<mutex> lock(mMutexPrevKF);
     return mpPrevKeyFrame;
 }
 
-KeyFrame* KeyFrame::GetNextKeyFrame(void)
+KeyFrame* KeyFrame::GetNextKeyFrame()
 {
     unique_lock<mutex> lock(mMutexNextKF);
     return mpNextKeyFrame;
@@ -69,7 +69,7 @@ void KeyFrame::SetNextKeyFrame(KeyFrame* pKF)
     mpNextKeyFrame = pKF;
 }
 
-std::vector<IMUData> KeyFrame::GetVectorIMUData(void)
+std::vector<IMUData> KeyFrame::GetVectorIMUData()
 {
     unique_lock<mutex> lock(mMutexIMUData);
     return mvIMUData;
@@ -116,7 +116,7 @@ void KeyFrame::SetNavState(const NavState& ns)
     mNavState = ns;
 }
 
-const NavState& KeyFrame::GetNavState(void)
+const NavState& KeyFrame::GetNavState()
 {
     unique_lock<mutex> lock(mMutexNavState);
     return mNavState;
@@ -176,7 +176,7 @@ const IMUPreintegrator & KeyFrame::GetIMUPreInt(void)
     return mIMUPreInt;
 }
 
-void KeyFrame::ComputePreInt(void)
+void KeyFrame::ComputePreInt()
 {
     unique_lock<mutex> lock(mMutexIMUData);
     if(mpPrevKeyFrame == NULL)
@@ -250,7 +250,7 @@ void KeyFrame::ComputePreInt(void)
     //cout<<"pre-int delta time: "<<mIMUPreInt.getDeltaTime()<<", deltaR:"<<endl<<mIMUPreInt.getDeltaR()<<endl;
 }
 
-
+/*
 KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mnFrameId(F.mnId),  mTimeStamp(F.mTimeStamp), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
     mfGridElementWidthInv(F.mfGridElementWidthInv), mfGridElementHeightInv(F.mfGridElementHeightInv),
@@ -283,9 +283,9 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     }
 
     SetPose(F.mTcw);    
-}
+}*/
 
-
+// KeyFrame Constructor for VISON and Inertial measurements:
 KeyFrame::KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB, std::vector<IMUData> vIMUData, KeyFrame* pPrevKF):
     mnFrameId(F.mnId),  mTimeStamp(F.mTimeStamp), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
     mfGridElementWidthInv(F.mfGridElementWidthInv), mfGridElementHeightInv(F.mfGridElementHeightInv),
@@ -327,14 +327,7 @@ KeyFrame::KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB, std::vector<IMU
     SetPose(F.mTcw);
 }
 
-
-
-
-
-
-
-/*// original KeyFrame Constructor for VISON only:
-
+// original KeyFrame Constructor for VISON only:
 KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mnFrameId(F.mnId),  mTimeStamp(F.mTimeStamp), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
     mfGridElementWidthInv(F.mfGridElementWidthInv), mfGridElementHeightInv(F.mfGridElementHeightInv),
@@ -350,11 +343,11 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(NULL), mbNotErase(false),
     mbToBeErased(false), mbBad(false), mHalfBaseline(F.mb/2), mpMap(pMap)
 {
-
+	cout << "\n\nvision KeyFrame()\n\n" << endl;
     mnId=nNextId++;
 
     mGrid.resize(mnGridCols);
-    for(int i=0; i<mnGridCols;i++)
+    for(int i=0; i<mnGridCols; i++)
     {
         mGrid[i].resize(mnGridRows);
         for(int j=0; j<mnGridRows; j++)
@@ -362,26 +355,13 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     }
 
     SetPose(F.mTcw);    
-}*/
+}
 
 
 
 //-------------------------------------------------------------------------------------------
 // ------------------------------Visual Inerial Added!------------------------------------- //
 //-------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1014,10 +994,6 @@ void KeyFrame::SetBadFlag()
 
     // Debug log
 	//cerr<<"KF set bad, id:"<<mnId<<", connect: "<<pPrevKF->mnId<<" and "<<pNextKF->mnId<<endl;
-
-
-
-
 // ------------------------------Visual Inerial Added!------------------------------------- //
 
 

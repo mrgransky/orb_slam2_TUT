@@ -14,14 +14,6 @@ using namespace cv;
 
 namespace ORB_SLAM2
 {
-
-
-
-
-
-
-
-
 //-------------------------------------------------------------------------------------------
 // ------------------------------Visual Inerial Added!------------------------------------- //
 //-------------------------------------------------------------------------------------------
@@ -32,9 +24,9 @@ public:
 
     double mTimeStamp;
     KeyFrameInit* mpPrevKeyFrame;
-    cv::Mat Twc;
+    Mat Twc;
     IMUPreintegrator mIMUPreInt;
-    std::vector<IMUData> mvIMUData;
+    vector<IMUData> mvIMUData;
     Vector3d bg;
 
 
@@ -935,8 +927,6 @@ void LocalMapping::SetTracker(Tracking *pTracker)
 
 void LocalMapping::Run()
 {
-
-
 // ------------------------------Visual Inerial Added!------------------------------------- //
     mbFinished = false;
     while(1)

@@ -22,6 +22,8 @@
 
 using namespace std;
 using namespace cv;
+using namespace Eigen;
+
 
 namespace ORB_SLAM2
 {
@@ -42,10 +44,27 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     else if(mSensor==RGBD)
         cout << "RGB-D" << endl;
 
-    //Load ORB Vocabulary
-    cout << endl << "Loading ORB Vocabulary..." << endl;
+	// ------------------------ Visual Inertial added! ------------------------//
+    //Check settings file
+    FileStorage fsSettings(strSettingsFile.c_str(), FileStorage::READ);
 
-    mpVocabulary = new ORBVocabulary();
+    if(!fsSettings.isOpened())
+    {
+       cerr << "Failed to open settings file at: " << strSettingsFile << endl;
+       exit(-1);
+    } 
+    /*else 
+    {
+       // reading IMU configuration file:
+	ConfigParam config(strSettingsFile);
+    }*/
+
+	// ------------------------ Visual Inertial added! ------------------------
+
+    //Load ORB Vocabulary
+    cout << "\nLoading ORB Vocabulary..." << endl;
+
+    mpVocabulary 		= new ORBVocabulary();
     bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
     if(!bVocLoad)
     {
@@ -54,20 +73,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         exit(-1);
     }
     cout << "Vocabulary loaded!" << endl << endl;
-
-    
-    //Check settings file
-    FileStorage fsSettings(strSettingsFile.c_str(), FileStorage::READ);
-
-    if(!fsSettings.isOpened())
-    {
-       cerr << "Failed to open settings file at: " << strSettingsFile << endl;
-       exit(-1);
-    } else 
-    {
-       // reading IMU configuration file:
-	ConfigParam config(strSettingsFile);
-    }
 
 	mpKeyFrameDatabase 	= new KeyFrameDatabase(*mpVocabulary);
 
@@ -85,8 +90,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
 	if(bUseViewer)
 	{
-		mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile);
-		mptViewer = new thread(&Viewer::Run, mpViewer);
+		mpViewer 	= new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker, strSettingsFile);
+		mptViewer 	= new thread(&Viewer::Run, mpViewer);
 		mpTracker->SetViewer(mpViewer);
 	}
 
@@ -98,6 +103,12 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
 	mpLoopCloser->SetTracker(mpTracker);
 	mpLoopCloser->SetLocalMapper(mpLocalMapper);
+
+	if(ConfigParam::GetRealTimeFlag())
+	{
+		//Thread for VINS initialization
+		mptLocalMappingVIOInit = new thread(&ORB_SLAM2::LocalMapping::VINSInitThread, mpLocalMapper);
+	}
 }
 
 Mat System::TrackStereo(const Mat &imLeft, const Mat &imRight, const double &timestamp)
@@ -257,8 +268,6 @@ Mat System::TrackMonocular(const Mat &im, const double &timestamp)
 
 
 // ------------------------------Visual Inerial Added!------------------------------------- //
-
-
 Mat System::TrackMonoVI(const Mat &im, const vector<IMUData> &vimu, const double &timestamp)
 {
     if(mSensor!=MONOCULAR)
@@ -361,12 +370,6 @@ void System::SaveKeyFrameTrajectoryNavState(const string &filename)
 }
 
 // ------------------------------Visual Inerial Added!------------------------------------- //
-
-
-
-
-
-
 
 
 void System::ActivateLocalizationMode()

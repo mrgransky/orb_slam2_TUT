@@ -71,13 +71,6 @@ public:
 // ------------------------------Visual Inerial Added!------------------------------------- //
 
 
-
-
-
-
-
-
-
 public:
     Tracking(	System* 	pSys, 		ORBVocabulary* 	pVoc, FrameDrawer* 	pFrameDrawer, 
 		MapDrawer* 	pMapDrawer, 	Map* 		pMap, KeyFrameDatabase* pKFDB, 

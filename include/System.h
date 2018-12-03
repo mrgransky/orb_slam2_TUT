@@ -66,7 +66,7 @@ public:
 
 	// ------------------------------Visual Inerial Added!------------------------------------- //
 	cv::Mat TrackMonoVI	(const cv::Mat &im, 	const std::vector<IMUData> &vimu, 	const double &timestamp);
-	bool bLocalMapAcceptKF(void);
+	bool bLocalMapAcceptKF();
 	void SaveKeyFrameTrajectoryNavState(const string& filename);
 	// ------------------------------Visual Inerial Added!------------------------------------- //
 
@@ -81,10 +81,9 @@ public:
 
 	void Shutdown();
 
-	void SaveTrajectoryTUM(const string &filename);
-
-	void SaveKeyFrameTrajectoryTUM(const string &filename);
-	void SaveTrajectoryKITTI(const string &filename);
+	void SaveTrajectoryTUM		(const string &filename);
+	void SaveTrajectoryKITTI	(const string &filename);
+	void SaveKeyFrameTrajectoryTUM	(const string &filename);
 
 	void CreatePCD(const string &filename);
 
@@ -95,21 +94,23 @@ public:
 
 private:
 
-    eSensor 		mSensor;
+	eSensor 		mSensor;
 
-    ORBVocabulary* 	mpVocabulary;
-    KeyFrameDatabase* 	mpKeyFrameDatabase;
-    Map* 		mpMap;
-    Tracking* 		mpTracker;
-    LocalMapping*	mpLocalMapper;
-    LoopClosing* 	mpLoopCloser;
-    Viewer* 		mpViewer;
-    FrameDrawer* 	mpFrameDrawer;
-    MapDrawer* 		mpMapDrawer;
+	ORBVocabulary* 		mpVocabulary;
+	KeyFrameDatabase* 	mpKeyFrameDatabase;
+	Map* 			mpMap;
+	Tracking* 		mpTracker;
+	LocalMapping*		mpLocalMapper;
+	LoopClosing* 		mpLoopCloser;
+	Viewer* 		mpViewer;
+	FrameDrawer* 		mpFrameDrawer;
+	MapDrawer* 		mpMapDrawer;
+	
+	std::thread* 		mptLocalMapping;
+	std::thread* 		mptLoopClosing;
+	std::thread* 		mptViewer;
+	std::thread* 		mptLocalMappingVIOInit;
 
-    std::thread* 	mptLocalMapping;
-    std::thread* 	mptLoopClosing;
-    std::thread* 	mptViewer;
 
     // Reset flag
     std::mutex mMutexReset;

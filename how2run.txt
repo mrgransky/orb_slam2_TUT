@@ -15,4 +15,9 @@ $ cd ~/home/farid/WS_Farid/orb_slam_TUT
 
 & ./build_project.sh
 
+-- datasets:
+$ cd Examples/Monocular
+$ ./mono_kitti /home/farid/WS_Farid/orb_slam2_TUT/Vocabulary/ORBvoc.txt KITTI00-02.yaml /home/farid/datasets/KITTI/sequences/00/
+
+-- Real-time with camera adjustments:
 $ roslaunch ORB_SLAM2 orb_slam2.launch

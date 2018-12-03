@@ -33,21 +33,23 @@ public:
     static std::string getTmpFilePath();
     static std::string _tmpFilePath;
 
-    static double GetVINSInitTime(){return _nVINSInitTime;}
-    static bool GetRealTimeFlag() {return _bRealTime;}
+    static double 	GetVINSInitTime(){return _nVINSInitTime;}
+    static bool 	GetRealTimeFlag() {return _bRealTime;}
 
 private:
-    static Eigen::Matrix4d _EigTbc;
-    static cv::Mat _MatTbc;
-    static Eigen::Matrix4d _EigTcb;
-    static cv::Mat _MatTcb;
-    static int _LocalWindowSize;
-    static double _ImageDelayToIMU;
-    static bool _bAccMultiply9p8;
+    static Eigen::Matrix4d 	_EigTbc;
+    static cv::Mat 		_MatTbc;
+	
+    static Eigen::Matrix4d 	_EigTcb;
+    static cv::Mat 		_MatTcb;
 
-    static double _g;
-    static double _nVINSInitTime;
-    static bool _bRealTime;
+    static int 			_LocalWindowSize;
+    static double 		_ImageDelayToIMU;
+    static bool 		_bAccMultiply9p8;
+
+    static double 		_g;
+    static double 		_nVINSInitTime;
+    static bool 		_bRealTime;
 };
 
 }
