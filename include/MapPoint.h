@@ -16,9 +16,6 @@ class Map;
 class Frame;
 
 
-
-
-
 // ------------------------------Visual Inerial Added!------------------------------------- //
 class cmpKeyFrameId{
 public:

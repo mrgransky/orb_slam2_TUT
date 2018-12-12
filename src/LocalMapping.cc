@@ -34,9 +34,10 @@ public:
         mTimeStamp(kf.mTimeStamp), mpPrevKeyFrame(NULL), Twc(kf.GetPoseInverse().clone()),
         mIMUPreInt(kf.GetIMUPreInt()), mvIMUData(kf.GetVectorIMUData()), bg(0,0,0)
     {
+
     }
 
-    void ComputePreInt(void)
+    void ComputePreInt()
     {
         if(mpPrevKeyFrame == NULL)
         {
@@ -76,7 +77,7 @@ public:
 
 };
 
-bool LocalMapping::GetUpdatingInitPoses(void)
+bool LocalMapping::GetUpdatingInitPoses()
 {
     unique_lock<mutex> lock(mMutexUpdatingInitPoses);
     return mbUpdatingInitPoses;
@@ -110,7 +111,7 @@ void LocalMapping::SetMapUpdateFlagInTracking(bool bflag)
     }
 }
 
-bool LocalMapping::GetVINSInited(void)
+bool LocalMapping::GetVINSInited()
 {
     unique_lock<mutex> lock(mMutexVINSInitFlag);
     return mbVINSInited;
@@ -122,7 +123,7 @@ void LocalMapping::SetVINSInited(bool flag)
     mbVINSInited = flag;
 }
 
-bool LocalMapping::GetFirstVINSInited(void)
+bool LocalMapping::GetFirstVINSInited()
 {
     unique_lock<mutex> lock(mMutexFirstVINSInitFlag);
     return mbFirstVINSInited;
@@ -169,7 +170,7 @@ void LocalMapping::VINSInitThread()
     }
 }
 
-bool LocalMapping::TryInitVIO(void)
+bool LocalMapping::TryInitVIO()
 {
     if(mpMap->KeyFramesInMap()<=mnLocalWindowSize)
         return false;
@@ -463,6 +464,7 @@ bool LocalMapping::TryInitVIO(void)
     {
         cv::Mat gwbefore = Rwi*GI;
         cv::Mat gwafter = Rwi_*GI;
+
         cout<<"Time: "<<mpCurrentKeyFrame->mTimeStamp - mnStartTime<<", sstar: "<<sstar<<", s: "<<s_<<endl;
 
         fgw<<mpCurrentKeyFrame->mTimeStamp<<" "
@@ -879,34 +881,6 @@ void LocalMapping::DeleteBadInLocalWindow(void)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 LocalMapping::LocalMapping(Map *pMap, const float bMonocular):
     				mbMonocular(bMonocular), mbResetRequested(false), mbFinishRequested(false), 
 				mbFinished(true), mpMap(pMap), mbAbortBA(false), mbStopped(false), 
@@ -925,9 +899,15 @@ void LocalMapping::SetTracker(Tracking *pTracker)
     mpTracker=pTracker;
 }
 
+
+
 void LocalMapping::Run()
 {
+
+/*
+//-------------------------------------------------------------------------------------------
 // ------------------------------Visual Inerial Added!------------------------------------- //
+//-------------------------------------------------------------------------------------------
     mbFinished = false;
     while(1)
     {
@@ -962,11 +942,14 @@ void LocalMapping::Run()
                 {
                     if(!GetVINSInited())
                     {
+			cout << "local mapping, !GetVINSInited() " << endl;
                         //Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,mlLocalKeyFrames,&mbAbortBA, mpMap, this);
                         Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA,mpMap,this);
                     }
                     else
                     {
+			
+			cout << "local mapping, GetVINSInited()\n\n" << endl;
                         //Optimizer::LocalBundleAdjustmentNavStatePRV(mpCurrentKeyFrame,mlLocalKeyFrames,&mbAbortBA, mpMap, mGravityVec, this);
                         Optimizer::LocalBAPRVIDP(mpCurrentKeyFrame,mlLocalKeyFrames,&mbAbortBA, mpMap, mGravityVec, this);
                     }
@@ -1021,16 +1004,11 @@ void LocalMapping::Run()
     }
 
     SetFinish();
+*/
 
 
-// ------------------------------Visual Inerial Added!------------------------------------- //
-
-
-
-
-    /*
+// ----------- original VISION ONLY local mapping -------------
     mbFinished = false;
-
     while(1)
     {
         // Tracking will see that Local Mapping is busy
@@ -1059,9 +1037,16 @@ void LocalMapping::Run()
             if(!CheckNewKeyFrames() && !stopRequested())
             {
                 // Local BA
-                if(mpMap->KeyFramesInMap()>2)
-                    Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpMap);
+                if(mpMap->KeyFramesInMap() > 2)
+		{	
+			cout << "\nKeyFramesInMap() > 2 => local BA\n" << endl;
+			// only vision:
+			//Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpMap);
 
+			// vision + imu
+			Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpMap, this);
+
+		}
                 // Check redundant local Keyframes
                 KeyFrameCulling();
             }
@@ -1091,15 +1076,9 @@ void LocalMapping::Run()
     }
 
     SetFinish();
-*/
-
-
-
-
-
-
-
-
+//-------------------------------------------------------------------------------------------
+// ------------------------------Visual Inerial Added!------------------------------------- //
+//-------------------------------------------------------------------------------------------
 }
 
 void LocalMapping::InsertKeyFrame(KeyFrame *pKF)
@@ -1547,6 +1526,7 @@ void LocalMapping::RequestStop()
 {
     unique_lock<mutex> lock(mMutexStop);
     mbStopRequested = true;
+
     unique_lock<mutex> lock2(mMutexNewKFs);
     mbAbortBA = true;
 }
@@ -1686,11 +1666,12 @@ void LocalMapping::KeyFrameCulling()
     }
 }
 
-cv::Mat LocalMapping::SkewSymmetricMatrix(const cv::Mat &v)
+Mat LocalMapping::SkewSymmetricMatrix(const Mat &v)
 {
-    return (cv::Mat_<float>(3,3) <<             0, -v.at<float>(2), v.at<float>(1),
-            v.at<float>(2),               0,-v.at<float>(0),
-            -v.at<float>(1),  v.at<float>(0),              0);
+
+    return (Mat_<float>(3,3) 	<<	0, 			-v.at<float>(2), 	v.at<float>(1),
+					v.at<float>(2), 	0,			-v.at<float>(0),
+					-v.at<float>(1), 	v.at<float>(0), 	0);
 }
 
 void LocalMapping::RequestReset()
@@ -1737,7 +1718,8 @@ bool LocalMapping::CheckFinish()
 void LocalMapping::SetFinish()
 {
     unique_lock<mutex> lock(mMutexFinish);
-    mbFinished = true;    
+    mbFinished = true;
+
     unique_lock<mutex> lock2(mMutexStop);
     mbStopped = true;
 }

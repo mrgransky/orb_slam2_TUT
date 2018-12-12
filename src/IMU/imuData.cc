@@ -34,8 +34,9 @@ Matrix3d IMUData::_accBiasRWCov = Matrix3d::Identity()*_accBiasRw2;     // sigma
 IMUData::IMUData(const double& gx, const double& gy, const double& gz,
                  const double& ax, const double& ay, const double& az,
                  const double& t) :
-    _g(gx,gy,gz), _a(ax,ay,az), _t(t)
+			_g(gx,gy,gz), _a(ax,ay,az), _t(t)
 {
+
 }
 
 

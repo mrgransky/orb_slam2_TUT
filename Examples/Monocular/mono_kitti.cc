@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     int nImages = vstrImageFilenames.size();
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR,true);
+    ORB_SLAM2::System mySlam(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR, true);
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
     // ---------------------------------- Main loop ----------------------------------//
     Mat im;
-    for(int ni=0; ni<nImages; ni++)
+    for(int ni=0; ni < nImages; ni++)
     {
         // Read image from file
         im = imread(vstrImageFilenames[ni],CV_LOAD_IMAGE_UNCHANGED);
@@ -60,7 +60,12 @@ int main(int argc, char **argv)
 #endif
 
         // Pass images to the SLAM system
-        SLAM.TrackMonocular(im,tframe);
+	// calculate camera pose T4x4:
+	Mat camPose4x4;
+
+	camPose4x4 = mySlam.TrackMonocular(im,tframe);
+
+	cout << "camera Pose = \n" << camPose4x4 << "\n" << endl;
 
 #ifdef COMPILEDWITHC11
         chrono::steady_clock::time_point 	t2 = chrono::steady_clock::now();
@@ -85,7 +90,7 @@ int main(int argc, char **argv)
     // ---------------------------------- Main loop ----------------------------------//
 
     // Stop all threads
-    SLAM.Shutdown();
+    mySlam.Shutdown();
 
     // Tracking time statistics
     sort(vTimesTrack.begin(),vTimesTrack.end());
@@ -99,10 +104,10 @@ int main(int argc, char **argv)
     cout << "mean tracking time: " 	<< totaltime/nImages 		<< endl;
 
     // Save camera trajectory
-    SLAM.SaveKeyFrameTrajectoryTUM("KF_Traj_KITTI.txt");  
-    SLAM.SaveTrajectoryKITTI("Traj_KITTI.txt");
+    mySlam.SaveKeyFrameTrajectoryTUM("KF_Traj_KITTI.txt");  
+    mySlam.SaveTrajectoryKITTI("Traj_KITTI.txt");
   
-    SLAM.CreatePCD("mono_KITTI.pcd");
+    mySlam.CreatePCD("mono_KITTI.pcd");
     return 0;
 }
 

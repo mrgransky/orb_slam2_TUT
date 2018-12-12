@@ -14,27 +14,28 @@ public:
 
     ConfigParam(std::string configfile);
 
-    double _testDiscardTime;
+    double 			_testDiscardTime;
 
-    static Eigen::Matrix4d GetEigTbc();
-    static cv::Mat GetMatTbc();
-    static Eigen::Matrix4d GetEigT_cb();
-    static cv::Mat GetMatT_cb();
-    static int GetLocalWindowSize();
-    static double GetImageDelayToIMU();
-    static bool GetAccMultiply9p8();
+    static Eigen::Matrix4d 	GetEigTbc();
+    static cv::Mat 		GetMatTbc();
 
-    static double GetG(){return _g;}
+    static Eigen::Matrix4d 	GetEigT_cb();
+    static cv::Mat 		GetMatT_cb();
+
+    static int 			GetLocalWindowSize();
+    static double 		GetImageDelayToIMU();
+    static bool 		GetAccMultiply9p8();
 
     std::string _bagfile;
     std::string _imageTopic;
     std::string _imuTopic;
 
-    static std::string getTmpFilePath();
-    static std::string _tmpFilePath;
+    static std::string 		getTmpFilePath();
+    static std::string 		_tmpFilePath;
 
-    static double 	GetVINSInitTime(){return _nVINSInitTime;}
-    static bool 	GetRealTimeFlag() {return _bRealTime;}
+    static double 		GetG()			{return _g;}
+    static double 		GetVINSInitTime()	{return _nVINSInitTime;}
+    static bool 		GetRealTimeFlag() 	{return _bRealTime;}
 
 private:
     static Eigen::Matrix4d 	_EigTbc;

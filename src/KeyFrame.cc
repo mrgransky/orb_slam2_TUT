@@ -303,6 +303,7 @@ KeyFrame::KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB, std::vector<IMU
 {
     mvIMUData = vIMUData;
 
+	cout << "\n\nvision IMU KeyFrame()\n\n" << endl;
     //SetNavState(F.GetNavState());
 
     if(pPrevKF)
@@ -343,18 +344,19 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(NULL), mbNotErase(false),
     mbToBeErased(false), mbBad(false), mHalfBaseline(F.mb/2), mpMap(pMap)
 {
-	cout << "\n\nvision KeyFrame()\n\n" << endl;
-    mnId=nNextId++;
+	//cout << "\n\nvision KeyFrame()\n\n" << endl;
+	mnId=nNextId++;
 
-    mGrid.resize(mnGridCols);
-    for(int i=0; i<mnGridCols; i++)
-    {
-        mGrid[i].resize(mnGridRows);
-        for(int j=0; j<mnGridRows; j++)
-            mGrid[i][j] = F.mGrid[i][j];
-    }
-
-    SetPose(F.mTcw);    
+	mGrid.resize(mnGridCols);
+	for(int i=0; i<mnGridCols; i++)
+	{
+		mGrid[i].resize(mnGridRows);
+		for(int j=0; j<mnGridRows; j++)
+		{
+			mGrid[i][j] = F.mGrid[i][j];
+		}
+	}
+	SetPose(F.mTcw);    
 }
 
 

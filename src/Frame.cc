@@ -17,15 +17,6 @@ float Frame::cx, Frame::cy, Frame::fx, Frame::fy, Frame::invfx, Frame::invfy;
 float Frame::mnMinX, Frame::mnMinY, Frame::mnMaxX, Frame::mnMaxY;
 float Frame::mfGridElementWidthInv, Frame::mfGridElementHeightInv;
 
-
-
-
-
-
-
-
-
-
 //-------------------------------------------------------------------------------------------
 // ------------------------------Visual Inerial Added!------------------------------------- //
 //-------------------------------------------------------------------------------------------
@@ -35,7 +26,7 @@ void Frame::ComputeIMUPreIntSinceLastFrame(const Frame* pLastF, IMUPreintegrator
     // Reset pre-integrator first
     IMUPreInt.reset();
 
-    const std::vector<IMUData>& vIMUSInceLastFrame = mvIMUDataSinceLastFrame;
+    const vector<IMUData>& vIMUSInceLastFrame = mvIMUDataSinceLastFrame;
 
     Vector3d bg = pLastF->GetNavState().Get_BiasGyr();
     Vector3d ba = pLastF->GetNavState().Get_BiasAcc();
@@ -77,7 +68,7 @@ void Frame::ComputeIMUPreIntSinceLastFrame(const Frame* pLastF, IMUPreintegrator
     }
 }
 
-void Frame::UpdatePoseFromNS(const cv::Mat &Tbc)
+void Frame::UpdatePoseFromNS(const Mat &Tbc)
 {
     cv::Mat Rbc = Tbc.rowRange(0,3).colRange(0,3).clone();
     cv::Mat Pbc = Tbc.rowRange(0,3).col(3).clone();
@@ -101,7 +92,7 @@ void Frame::UpdateNavState(const IMUPreintegrator& imupreint, const Vector3d& gw
     Converter::updateNS(mNavState,imupreint,gw);
 }
 
-const NavState& Frame::GetNavState(void) const
+const NavState& Frame::GetNavState() const
 {
     return mNavState;
 }
@@ -132,8 +123,9 @@ void Frame::SetNavState(const NavState& ns)
     mNavState = ns;
 }
 
-Frame::Frame(const cv::Mat &imGray, const double &timeStamp, const std::vector<IMUData> &vimu, ORBextractor* extractor,ORBVocabulary* voc,
-             cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, KeyFrame* pLastKF)
+Frame::Frame(const Mat &imGray, const double &timeStamp, const vector<IMUData> &vimu, 
+		ORBextractor* extractor,ORBVocabulary* voc, Mat &K, Mat &distCoef, 
+		const float &bf, const float &thDepth, KeyFrame* pLastKF)
     :mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
      mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth)
 {
@@ -201,28 +193,6 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, const std::vector<I
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Frame::Frame()
 {}
 
@@ -251,15 +221,21 @@ Frame::Frame(const Frame &frame):
 	mvScaleFactors(frame.mvScaleFactors), mvInvScaleFactors(frame.mvInvScaleFactors),
 	mvLevelSigma2(frame.mvLevelSigma2), mvInvLevelSigma2(frame.mvInvLevelSigma2)
 {
-    for(int i=0;i<FRAME_GRID_COLS;i++)
-        for(int j=0; j<FRAME_GRID_ROWS; j++)
-            mGrid[i][j]=frame.mGrid[i][j];
-
-    if(!frame.mTcw.empty())
-        SetPose(frame.mTcw);
+	for(int i=0;i<FRAME_GRID_COLS;i++)
+	{
+		for(int j=0; j<FRAME_GRID_ROWS; j++)
+		{
+			mGrid[i][j]=frame.mGrid[i][j];
+		}
+	}
+	
+	if(!frame.mTcw.empty())
+	{
+		SetPose(frame.mTcw);
+	}
 }
 
-
+// stereo
 Frame::Frame(	const Mat &imLeft, const Mat &imRight, 
 		const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, 
 		Mat &K, Mat &distCoef, const float &bf, const float &thDepth):
@@ -272,13 +248,13 @@ Frame::Frame(	const Mat &imLeft, const Mat &imRight,
     mnId=nNextId++;
 
     // Scale Level Info
-    mnScaleLevels = mpORBextractorLeft->GetLevels();
-    mfScaleFactor = mpORBextractorLeft->GetScaleFactor();
-    mfLogScaleFactor = log(mfScaleFactor);
-    mvScaleFactors = mpORBextractorLeft->GetScaleFactors();
-    mvInvScaleFactors = mpORBextractorLeft->GetInverseScaleFactors();
-    mvLevelSigma2 = mpORBextractorLeft->GetScaleSigmaSquares();
-    mvInvLevelSigma2 = mpORBextractorLeft->GetInverseScaleSigmaSquares();
+    mnScaleLevels 	= mpORBextractorLeft->GetLevels();
+    mfScaleFactor 	= mpORBextractorLeft->GetScaleFactor();
+    mfLogScaleFactor 	= log(mfScaleFactor);
+    mvScaleFactors 	= mpORBextractorLeft->GetScaleFactors();
+    mvInvScaleFactors 	= mpORBextractorLeft->GetInverseScaleFactors();
+    mvLevelSigma2 	= mpORBextractorLeft->GetScaleSigmaSquares();
+    mvInvLevelSigma2 	= mpORBextractorLeft->GetInverseScaleSigmaSquares();
 
     // ORB extraction
     thread threadLeft(&Frame::ExtractORB,this,0,imLeft);
@@ -322,6 +298,7 @@ Frame::Frame(	const Mat &imLeft, const Mat &imRight,
     AssignFeaturesToGrid();
 }
 
+// RGB-D
 Frame::Frame(	const Mat &imGray, const Mat &imDepth, const double &timeStamp, 
 		ORBextractor* extractor,ORBVocabulary* voc, Mat &K, 
 		Mat &distCoef, const float &bf, const float &thDepth):
@@ -381,7 +358,7 @@ Frame::Frame(	const Mat &imGray, const Mat &imDepth, const double &timeStamp,
     AssignFeaturesToGrid();
 }
 
-
+// Monocular Camera
 Frame::Frame(	const Mat &imGray, const double &timeStamp, 
 		ORBextractor* extractor,ORBVocabulary* voc, 
 		Mat &K, Mat &distCoef, const float &bf, const float &thDepth):
@@ -394,13 +371,13 @@ Frame::Frame(	const Mat &imGray, const double &timeStamp,
     mnId=nNextId++;
 
     // Scale Level Info
-    mnScaleLevels = mpORBextractorLeft->GetLevels();
-    mfScaleFactor = mpORBextractorLeft->GetScaleFactor();
-    mfLogScaleFactor = log(mfScaleFactor);
-    mvScaleFactors = mpORBextractorLeft->GetScaleFactors();
-    mvInvScaleFactors = mpORBextractorLeft->GetInverseScaleFactors();
-    mvLevelSigma2 = mpORBextractorLeft->GetScaleSigmaSquares();
-    mvInvLevelSigma2 = mpORBextractorLeft->GetInverseScaleSigmaSquares();
+    mnScaleLevels 	= mpORBextractorLeft->GetLevels();
+    mfScaleFactor 	= mpORBextractorLeft->GetScaleFactor();
+    mfLogScaleFactor 	= log(mfScaleFactor);
+    mvScaleFactors 	= mpORBextractorLeft->GetScaleFactors();
+    mvInvScaleFactors 	= mpORBextractorLeft->GetInverseScaleFactors();
+    mvLevelSigma2 	= mpORBextractorLeft->GetScaleSigmaSquares();
+    mvInvLevelSigma2 	= mpORBextractorLeft->GetInverseScaleSigmaSquares();
 
     // ORB extraction
     ExtractORB(0,imGray);
@@ -459,7 +436,7 @@ void Frame::AssignFeaturesToGrid()
     }
 }
 
-void Frame::ExtractORB(int flag, const cv::Mat &im)
+void Frame::ExtractORB(int flag, const Mat &im)
 {
     if(flag==0)
         (*mpORBextractorLeft)(im,cv::Mat(),mvKeys,mDescriptors);
@@ -467,7 +444,7 @@ void Frame::ExtractORB(int flag, const cv::Mat &im)
         (*mpORBextractorRight)(im,cv::Mat(),mvKeysRight,mDescriptorsRight);
 }
 
-void Frame::SetPose(cv::Mat Tcw)
+void Frame::SetPose(Mat Tcw)
 {
     mTcw = Tcw.clone();
     UpdatePoseMatrices();
@@ -475,10 +452,12 @@ void Frame::SetPose(cv::Mat Tcw)
 
 void Frame::UpdatePoseMatrices()
 { 
-    mRcw = mTcw.rowRange(0,3).colRange(0,3);
-    mRwc = mRcw.t();
-    mtcw = mTcw.rowRange(0,3).col(3);
-    mOw = -mRcw.t()*mtcw;
+	// extract rotation and translation matrix:	
+	mRcw = mTcw.rowRange(0,3).colRange(0,3);
+	mtcw = mTcw.rowRange(0,3).col(3);
+
+	mRwc = mRcw.t();
+	mOw = -mRcw.t()*mtcw;
 }
 
 bool Frame::isInFrustum(MapPoint *pMP, float viewingCosLimit)
@@ -486,13 +465,14 @@ bool Frame::isInFrustum(MapPoint *pMP, float viewingCosLimit)
     pMP->mbTrackInView = false;
 
     // 3D in absolute coordinates
-    cv::Mat P = pMP->GetWorldPos(); 
+    Mat P = pMP->GetWorldPos(); 
 
     // 3D in camera coordinates
-    const cv::Mat Pc = mRcw*P+mtcw;
-    const float &PcX = Pc.at<float>(0);
-    const float &PcY= Pc.at<float>(1);
-    const float &PcZ = Pc.at<float>(2);
+    const Mat Pc = mRcw*P+mtcw;
+
+    const float &PcX 	= Pc.at<float>(0);
+    const float &PcY	= Pc.at<float>(1);
+    const float &PcZ 	= Pc.at<float>(2);
 
     // Check positive depth
     if(PcZ<0.0f)

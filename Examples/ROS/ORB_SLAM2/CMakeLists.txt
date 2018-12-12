@@ -129,11 +129,11 @@ ${LIBS}
 )
 
 # Node for monocular camera
-rosbuild_add_executable(Mono
+rosbuild_add_executable(RT_Mono
 src/ros_mono.cc
 )
 
-target_link_libraries(Mono
+target_link_libraries(RT_Mono
 ${LIBS}
 )
 

@@ -16,9 +16,6 @@ int main(int argc, char** argv)
   init(argc, argv, "cameraPub");
   NodeHandle nh;
 
-
-
-
 	if(argc != 2)
 	{
 		cerr << endl << "Usage: rosrun ORB_SLAM2 cameraPub camera_name(webcam or phone?)" << endl;

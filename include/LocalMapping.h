@@ -21,8 +21,6 @@ class Map;
 class LocalMapping
 {
 
-
-
 // ------------------------------Visual Inerial Added!------------------------------------- //
 
 public:
@@ -33,9 +31,9 @@ public:
     void AddToLocalWindow(KeyFrame* pKF);
     void DeleteBadInLocalWindow(void);
 
-    void VINSInitThread(void);
-    bool TryInitVIO(void);
-    bool GetVINSInited(void);
+    void VINSInitThread();
+    bool TryInitVIO();
+    bool GetVINSInited();
     void SetVINSInited(bool flag);
 
     bool GetFirstVINSInited(void);
@@ -51,7 +49,7 @@ public:
     const KeyFrame* GetCurrentKF(void) const {return mpCurrentKeyFrame;}
 
     std::mutex mMutexUpdatingInitPoses;
-    bool GetUpdatingInitPoses(void);
+    bool GetUpdatingInitPoses();
     void SetUpdatingInitPoses(bool flag);
 
     std::mutex mMutexInitGBAFinish;
@@ -60,31 +58,41 @@ public:
     void SetFlagInitGBAFinish(bool flag) { unique_lock<mutex> lock(mMutexInitGBAFinish); mbInitGBAFinish = flag; }
 
 protected:
-    double mnStartTime;
-    bool mbFirstTry;
-    double mnVINSInitScale;
-    cv::Mat mGravityVec; // gravity vector in world frame
-    cv::Mat mRwiInit;
 
-    std::mutex mMutexVINSInitFlag;
-    bool mbVINSInited;
+	double mnStartTime;
+	bool mbFirstTry;
+	double mnVINSInitScale;
+	cv::Mat mGravityVec; // gravity vector in world frame
+	cv::Mat mRwiInit;
 
-    std::mutex mMutexFirstVINSInitFlag;
-    bool mbFirstVINSInited;
+	std::mutex mMutexVINSInitFlag;
+	bool mbVINSInited;
 
-    unsigned int mnLocalWindowSize;
-    std::list<KeyFrame*> mlLocalKeyFrames;
+	std::mutex mMutexFirstVINSInitFlag;
+	bool mbFirstVINSInited;
 
-    std::mutex mMutexMapUpdateFlag;
-    bool mbMapUpdateFlagForTracking;
-    KeyFrame* mpMapUpdateKF;
+	unsigned int mnLocalWindowSize;
+	std::list<KeyFrame*> mlLocalKeyFrames;
 
-    bool mbUpdatingInitPoses;
+	std::mutex mMutexMapUpdateFlag;
+	bool mbMapUpdateFlagForTracking;
+	KeyFrame* mpMapUpdateKF;
 
-    std::mutex mMutexCopyInitKFs;
-    bool mbCopyInitKFs;
-    bool GetFlagCopyInitKFs() { unique_lock<mutex> lock(mMutexCopyInitKFs); return mbCopyInitKFs; }
-void SetFlagCopyInitKFs(bool flag) { unique_lock<mutex> lock(mMutexCopyInitKFs); mbCopyInitKFs = flag; }
+	bool mbUpdatingInitPoses;
+
+	std::mutex mMutexCopyInitKFs;
+	bool mbCopyInitKFs;
+
+	bool GetFlagCopyInitKFs() 
+	{ 
+		unique_lock<mutex> lock(mMutexCopyInitKFs); 
+		return mbCopyInitKFs;
+	}
+	void SetFlagCopyInitKFs(bool flag) 
+	{
+		unique_lock<mutex> lock(mMutexCopyInitKFs); 
+		mbCopyInitKFs = flag;
+	}
 
 // ------------------------------Visual Inerial Added!------------------------------------- //
 

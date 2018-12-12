@@ -28,7 +28,7 @@ using namespace Eigen;
 namespace ORB_SLAM2
 {
 
-System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer):
+System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer, const bool useIMU):
 		mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), 
 		mbReset(false), mbActivateLocalizationMode(false), 
 		mbDeactivateLocalizationMode(false)
@@ -104,11 +104,14 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 	mpLoopCloser->SetTracker(mpTracker);
 	mpLoopCloser->SetLocalMapper(mpLocalMapper);
 
-	if(ConfigParam::GetRealTimeFlag())
+	// modification required!!!
+	if(useIMU)
+	{}
+	/*if(ConfigParam::GetRealTimeFlag())
 	{
 		//Thread for VINS initialization
 		mptLocalMappingVIOInit = new thread(&ORB_SLAM2::LocalMapping::VINSInitThread, mpLocalMapper);
-	}
+	}*/
 }
 
 Mat System::TrackStereo(const Mat &imLeft, const Mat &imRight, const double &timestamp)

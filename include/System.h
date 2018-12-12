@@ -58,7 +58,8 @@ public:
 		return mpMapDrawer;
 	}
 
-	System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer = true);
+	System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, 
+		const bool bUseViewer = true, const bool useIMU = false);
 
 	cv::Mat TrackStereo	(const cv::Mat &imLeft, const cv::Mat &imRight, 		const double &timestamp);
 	cv::Mat TrackRGBD	(const cv::Mat &im, 	const cv::Mat &depthmap, 		const double &timestamp);

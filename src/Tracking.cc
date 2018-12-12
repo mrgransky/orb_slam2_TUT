@@ -19,6 +19,7 @@
 #define TRACK_WITH_IMU
 
 using namespace std;
+using namespace cv;
 
 namespace ORB_SLAM2
 {
@@ -561,23 +562,23 @@ Tracking::Tracking(	System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer
 
     mpORBextractorLeft = new ORBextractor(nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
 
-    if(sensor==System::STEREO)
+    if(sensor == System::STEREO)
         mpORBextractorRight = new ORBextractor(nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
 
-    if(sensor==System::MONOCULAR)
+    if(sensor == System::MONOCULAR)
         mpIniORBextractor = new ORBextractor(2*nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
 
-    cout << endl  << "ORB Extractor Parameters: " << endl;
-    cout << "- Number of Features: " << nFeatures << endl;
-    cout << "- Scale Levels: " << nLevels << endl;
-    cout << "- Scale Factor: " << fScaleFactor << endl;
-    cout << "- Initial Fast Threshold: " << fIniThFAST << endl;
-    cout << "- Minimum Fast Threshold: " << fMinThFAST << endl;
+    cout << "\nORB Extractor Parameters: " 	<< endl;
+    cout << "- Number of Features: " 		<< nFeatures 	<< endl;
+    cout << "- Scale Levels: " 			<< nLevels 	<< endl;
+    cout << "- Scale Factor: " 			<< fScaleFactor << endl;
+    cout << "- Initial Fast Threshold: " 	<< fIniThFAST 	<< endl;
+    cout << "- Minimum Fast Threshold: " 	<< fMinThFAST 	<< endl;
 
     if(sensor==System::STEREO || sensor==System::RGBD)
     {
         mThDepth = mbf*(float)fSettings["ThDepth"]/fx;
-        cout << endl << "Depth Threshold (Close/Far Points): " << mThDepth << endl;
+        cout << "-Depth Threshold (Close/Far Points): " << mThDepth << endl;
     }
 
     if(sensor==System::RGBD)
@@ -607,7 +608,7 @@ void Tracking::SetViewer(Viewer *pViewer)
 }
 
 
-cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp)
+Mat Tracking::GrabImageStereo(const Mat &imRectLeft, const Mat &imRectRight, const double &timestamp)
 {
     mImGray = imRectLeft;
     cv::Mat imGrayRight = imRectRight;
@@ -678,7 +679,7 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
 }
 
 
-cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
+Mat Tracking::GrabImageMonocular(const Mat &im, const double &timestamp)
 {
     mImGray = im;
 
@@ -697,31 +698,31 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
             cvtColor(mImGray,mImGray,CV_BGRA2GRAY);
     }
 
-    if(mState==NOT_INITIALIZED || mState==NO_IMAGES_YET)
+    if(mState == NOT_INITIALIZED || mState == NO_IMAGES_YET)
         mCurrentFrame = Frame(mImGray,timestamp,mpIniORBextractor,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
     else
         mCurrentFrame = Frame(mImGray,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
 
     Track();
-
+	// mTcw: camera pose, in frame.h
     return mCurrentFrame.mTcw.clone();
 }
 
 void Tracking::Track()
 {
-    if(mState==NO_IMAGES_YET)
+    if(mState == NO_IMAGES_YET)
     {
         mState = NOT_INITIALIZED;
     }
 
-    mLastProcessedState=mState;
+    mLastProcessedState = mState;
 
     // Get Map Mutex -> Map cannot be changed
     unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
 
-    if(mState==NOT_INITIALIZED)
+    if(mState == NOT_INITIALIZED)
     {
-        if(mSensor==System::STEREO || mSensor==System::RGBD)
+        if(mSensor == System::STEREO || mSensor == System::RGBD)
             StereoInitialization();
         else
             MonocularInitialization();
@@ -740,7 +741,7 @@ void Tracking::Track()
             // Local Mapping is activated. This is the normal behaviour, unless
             // you explicitly activate the "only tracking" mode.
 
-            if(mState==OK)
+            if(mState == OK)
             {
                 // Local Mapping might have changed some MapPoints tracked in last frame
                 CheckReplacedInLastFrame();
@@ -763,7 +764,7 @@ void Tracking::Track()
         }
         else
         {// Localization Mode: Local Mapping is deactivated
-            if(mState==LOST)
+            if(mState == LOST)
             {
                 bOK = Relocalization();
             }

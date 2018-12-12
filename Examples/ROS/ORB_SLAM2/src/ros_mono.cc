@@ -37,6 +37,8 @@
 using namespace std;
 using namespace pcl;
 
+using namespace cv;
+
 ORB_SLAM2::System* mySLAM;
 
 void pubAllPointCloud	(ORB_SLAM2::System* inpSLAM);
@@ -69,14 +71,14 @@ public:
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "Mono");
+	ros::init(argc, argv, "RT_Mono");
 	ros::start();
 
 	ros::NodeHandle nh;
 
 	if(argc != 4)
 	{
-		cerr << endl << "Usage: rosrun ORB_SLAM2 Mono [path_to_vocabulary] [path_to_settings] camera_name" << endl;
+		cerr << "Syntax:\n rosrun ORB_SLAM2 RT_Mono [path_to_vocabulary] [path_to_settings] camera_name" << endl;
 		ros::shutdown();
 		return 1;
 	}
@@ -88,7 +90,7 @@ int main(int argc, char **argv)
 
 	while(ros::ok())
 	{
-
+		cout << "real_time ORB_SLAM" << endl;
 		mySLAM = new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR,true);
 		REAL_TIME_MONOCULAR rt_mono;
 		
@@ -125,8 +127,11 @@ void REAL_TIME_MONOCULAR::imgCallBack(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
-    mySLAM->TrackMonocular(cv_ptr->image,cv_ptr->header.stamp.toSec());
-    
+	Mat camPose4x4;
+
+	camPose4x4 = mySLAM->TrackMonocular(cv_ptr->image,cv_ptr->header.stamp.toSec());
+	cout << "camera Pose = \n" << camPose4x4 << "\n" << endl;
+
     // transformation between fixed frame (GROUND) -> vehicle
     getTrans2Gr(getCameraMatrix(mySLAM));
 

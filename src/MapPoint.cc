@@ -3,38 +3,42 @@
 
 #include<mutex>
 
+using namespace std;
+using namespace cv;
+
+
 namespace ORB_SLAM2
 {
 
 long unsigned int MapPoint::nNextId=0;
 mutex MapPoint::mGlobalMutex;
 
-MapPoint::MapPoint(const cv::Mat &Pos, KeyFrame *pRefKF, Map* pMap):
-    mnFirstKFid(pRefKF->mnId), mnFirstFrame(pRefKF->mnFrameId), nObs(0), mnTrackReferenceForFrame(0),
-    mnLastFrameSeen(0), mnBALocalForKF(0), mnFuseCandidateForKF(0), mnLoopPointForKF(0), mnCorrectedByKF(0),
-    mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(pRefKF), mnVisible(1), mnFound(1), mbBad(false),
-    mpReplaced(static_cast<MapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0), mpMap(pMap)
+MapPoint::MapPoint(const Mat &Pos, KeyFrame *pRefKF, Map* pMap):
+	mnFirstKFid(pRefKF->mnId), mnFirstFrame(pRefKF->mnFrameId), nObs(0), mnTrackReferenceForFrame(0),
+	mnLastFrameSeen(0), mnBALocalForKF(0), mnFuseCandidateForKF(0), mnLoopPointForKF(0), mnCorrectedByKF(0),
+	mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(pRefKF), mnVisible(1), mnFound(1), mbBad(false),
+	mpReplaced(static_cast<MapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0), mpMap(pMap)
 {
     Pos.copyTo(mWorldPos);
-    mNormalVector = cv::Mat::zeros(3,1,CV_32F);
+    mNormalVector = Mat::zeros(3,1,CV_32F);
 
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     mnId=nNextId++;
 }
 
-MapPoint::MapPoint(const cv::Mat &Pos, Map* pMap, Frame* pFrame, const int &idxF):
+MapPoint::MapPoint(const Mat &Pos, Map* pMap, Frame* pFrame, const int &idxF):
     mnFirstKFid(-1), mnFirstFrame(pFrame->mnId), nObs(0), mnTrackReferenceForFrame(0), mnLastFrameSeen(0),
     mnBALocalForKF(0), mnFuseCandidateForKF(0),mnLoopPointForKF(0), mnCorrectedByKF(0),
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(static_cast<KeyFrame*>(NULL)), mnVisible(1),
     mnFound(1), mbBad(false), mpReplaced(NULL), mpMap(pMap)
 {
     Pos.copyTo(mWorldPos);
-    cv::Mat Ow = pFrame->GetCameraCenter();
+    Mat Ow = pFrame->GetCameraCenter();
     mNormalVector = mWorldPos - Ow;
-    mNormalVector = mNormalVector/cv::norm(mNormalVector);
+    mNormalVector = mNormalVector/norm(mNormalVector);
 
-    cv::Mat PC = Pos - Ow;
+    Mat PC = Pos - Ow;
     const float dist = cv::norm(PC);
     const int level = pFrame->mvKeysUn[idxF].octave;
     const float levelScaleFactor =  pFrame->mvScaleFactors[level];
@@ -65,20 +69,20 @@ void MapPoint::UpdateScale(float scale)
 // ------------------------------Visual Inerial Added!------------------------------------- //
 
 
-void MapPoint::SetWorldPos(const cv::Mat &Pos)
+void MapPoint::SetWorldPos(const Mat &Pos)
 {
     unique_lock<mutex> lock2(mGlobalMutex);
     unique_lock<mutex> lock(mMutexPos);
     Pos.copyTo(mWorldPos);
 }
 
-cv::Mat MapPoint::GetWorldPos()
+Mat MapPoint::GetWorldPos()
 {
     unique_lock<mutex> lock(mMutexPos);
     return mWorldPos.clone();
 }
 
-cv::Mat MapPoint::GetNormal()
+Mat MapPoint::GetNormal()
 {
     unique_lock<mutex> lock(mMutexPos);
     return mNormalVector.clone();
@@ -153,7 +157,8 @@ void MapPoint::SetBadFlag()
         obs = mObservations;
         mObservations.clear();
     }
-    for(map<KeyFrame*,size_t>::iterator mit=obs.begin(), mend=obs.end(); mit!=mend; mit++)
+
+    for(map<KeyFrame*,size_t>::iterator mit = obs.begin(), mend = obs.end(); mit != mend; mit++)
     {
         KeyFrame* pKF = mit->first;
         pKF->EraseMapPointMatch(mit->second);

@@ -32,14 +32,14 @@ void Converter::updateNS(NavState& ns, const IMUPreintegrator& imupreint, const 
     if(ns.Get_dBias_Gyr().norm()>1e-6 || ns.Get_dBias_Acc().norm()>1e-6) std::cerr<<"delta bias in updateNS is not zero"<<ns.Get_dBias_Gyr().transpose()<<", "<<ns.Get_dBias_Acc().transpose()<<std::endl;
 }
 
-cv::Mat Converter::toCvMatInverse(const cv::Mat &Tcw)
+Mat Converter::toCvMatInverse(const Mat &Tcw)
 {
-    cv::Mat Rcw = Tcw.rowRange(0,3).colRange(0,3);
-    cv::Mat tcw = Tcw.rowRange(0,3).col(3);
-    cv::Mat Rwc = Rcw.t();
-    cv::Mat twc = -Rwc*tcw;
+    Mat Rcw = Tcw.rowRange(0,3).colRange(0,3);
+    Mat tcw = Tcw.rowRange(0,3).col(3);
+    Mat Rwc = Rcw.t();
+    Mat twc = -Rwc*tcw;
 
-    cv::Mat Twc = cv::Mat::eye(4,4,Tcw.type());
+    Mat Twc = Mat::eye(4,4,Tcw.type());
     Rwc.copyTo(Twc.rowRange(0,3).colRange(0,3));
     twc.copyTo(Twc.rowRange(0,3).col(3));
 
@@ -66,14 +66,18 @@ vector<Mat> Converter::toDescriptorVector(const Mat &Descriptors)
 
 g2o::SE3Quat Converter::toSE3Quat(const Mat &cvT)
 {
-    Eigen::Matrix<double,3,3> R;
-    R << cvT.at<float>(0,0), cvT.at<float>(0,1), cvT.at<float>(0,2),
-         cvT.at<float>(1,0), cvT.at<float>(1,1), cvT.at<float>(1,2),
-         cvT.at<float>(2,0), cvT.at<float>(2,1), cvT.at<float>(2,2);
+	Eigen::Matrix<double,3,3> R;
+	Eigen::Matrix<double,3,1> t;
 
-    Eigen::Matrix<double,3,1> t(cvT.at<float>(0,3), cvT.at<float>(1,3), cvT.at<float>(2,3));
+	R << 	cvT.at<float>(0,0), cvT.at<float>(0,1), cvT.at<float>(0,2),
+		cvT.at<float>(1,0), cvT.at<float>(1,1), cvT.at<float>(1,2),
+		cvT.at<float>(2,0), cvT.at<float>(2,1), cvT.at<float>(2,2);
 
-    return g2o::SE3Quat(R,t);
+	t << 	cvT.at<float>(0,3), 
+		cvT.at<float>(1,3), 
+		cvT.at<float>(2,3);
+	
+	return g2o::SE3Quat(R,t);
 }
 
 Mat Converter::toCvMat(const g2o::SE3Quat &SE3)
@@ -103,6 +107,7 @@ Mat Converter::toCvMat(const Eigen::Matrix<double,4,4> &m)
 cv::Mat Converter::toCvMat(const Eigen::Matrix3d &m)
 {
     cv::Mat cvMat(3,3,CV_32F);
+
     for(int i=0;i<3;i++)
         for(int j=0; j<3; j++)
             cvMat.at<float>(i,j)=m(i,j);
@@ -139,18 +144,24 @@ Mat Converter::toCvSE3(const Eigen::Matrix<double,3,3> &R, const Eigen::Matrix<d
 
 Eigen::Matrix<double,3,1> Converter::toVector3d(const Mat &cvVector)
 {
-    Eigen::Matrix<double,3,1> v;
-    v << cvVector.at<float>(0), cvVector.at<float>(1), cvVector.at<float>(2);
+	Eigen::Matrix<double,3,1> v;
+	
+	v 	<< 	cvVector.at<float>(0), 
+			cvVector.at<float>(1), 
+			cvVector.at<float>(2);
 
-    return v;
+	return v;
 }
 
 Eigen::Matrix<double,3,1> Converter::toVector3d(const Point3f &cvPoint)
 {
-    Eigen::Matrix<double,3,1> v;
-    v << cvPoint.x, cvPoint.y, cvPoint.z;
+	Eigen::Matrix<double,3,1> v;
+	
+	v	<< 	cvPoint.x, 
+			cvPoint.y, 
+			cvPoint.z;
 
-    return v;
+	return v;
 }
 
 Eigen::Matrix<double,3,3> Converter::toMatrix3d(const cv::Mat &cvMat3)

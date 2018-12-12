@@ -12,7 +12,11 @@
 
 	<!-- Logitech webcam -->
 	<node name="cameraPub" pkg="ORB_SLAM2" type="cameraPub" args="webcam"/>
-	<node name="Mono" pkg="ORB_SLAM2" type="Mono" args= "/home/farid/WS_Farid/orb_slam2_TUT/Vocabulary/ORBvoc.txt /home/farid/WS_Farid/orb_slam2_TUT/settingFiles/my_logitech.yaml webcam" />
+
+	<node 	name="RT_Mono" pkg="ORB_SLAM2" type="RT_Mono" 
+		args= "/home/farid/WS_Farid/orb_slam2_TUT/Vocabulary/ORBvoc.txt 
+			/home/farid/WS_Farid/orb_slam2_TUT/settingFiles/my_logitech.yaml 
+			webcam" />
 	
 	<!-- Android phone -->
 	<!--<node name="cameraPub" pkg="ORB_SLAM2" type="cameraPub" args="phone"/>

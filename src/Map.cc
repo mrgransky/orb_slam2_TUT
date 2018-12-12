@@ -38,14 +38,17 @@ void Map::UpdateScale(const double &scale)
 
 
 
-Map::Map():mnMaxKFid(0),mnBigChangeIdx(0)
+Map::Map():
+	mnMaxKFid(0),mnBigChangeIdx(0)
 {
+
 }
 
 void Map::AddKeyFrame(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutexMap);
     mspKeyFrames.insert(pKF);
+
     if(pKF->mnId>mnMaxKFid)
         mnMaxKFid=pKF->mnId;
 }

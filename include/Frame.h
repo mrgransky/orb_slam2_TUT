@@ -35,16 +35,24 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     // Constructor for Monocular VI
-    Frame(const cv::Mat &imGray, const double &timeStamp, const std::vector<IMUData> &vimu, ORBextractor* extractor,ORBVocabulary* voc,
-          cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, KeyFrame* pLastKF=NULL);
+    Frame(const cv::Mat &imGray, const double &timeStamp, const std::vector<IMUData> &vimu, 
+		ORBextractor* extractor,ORBVocabulary* voc,
+		cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, KeyFrame* pLastKF = NULL);
 
     void ComputeIMUPreIntSinceLastFrame(const Frame* pLastF, IMUPreintegrator& imupreint) const;
+
     void UpdatePoseFromNS(const cv::Mat &Tbc);
+
     void SetInitialNavStateAndBias(const NavState& ns);
+
     void UpdateNavState(const IMUPreintegrator& imupreint, const Vector3d& gw);
+
     const NavState& GetNavState(void) const;
+
     void SetNavState(const NavState& ns);
+
     void SetNavStateBiasGyr(const Vector3d &bg);
+
     void SetNavStateBiasAcc(const Vector3d &ba);
 
     // IMU Data from last Frame to this Frame
@@ -68,16 +76,23 @@ public:
     // Copy constructor.
     Frame(const Frame &frame);
 
-    // Constructor for stereo cameras.
-    Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
+    // stereo
+    Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, 
+		ORBextractor* extractorLeft, ORBextractor* extractorRight, ORBVocabulary* voc, 
+		cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
 
-    // Constructor for RGB-D cameras.
-    Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
+    // RGB-D 
+    Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, 
+		ORBextractor* extractor,ORBVocabulary* voc, 
+		cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
 
-    // Constructor for Monocular cameras.
-    Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
+    // Monocular
+    Frame(const cv::Mat &imGray, const double &timeStamp, 
+		ORBextractor* extractor,ORBVocabulary* voc, 
+		cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
 
-    // Extract ORB on the image. 0 for left image and 1 for right image.
+    // Extract ORB on the image.
+   // 0 left, 1 right 
     void ExtractORB(int flag, const cv::Mat &im);
 
     // Compute Bag of Words representation.
@@ -90,12 +105,14 @@ public:
     void UpdatePoseMatrices();
 
     // Returns the camera center.
-    inline cv::Mat GetCameraCenter(){
+    inline cv::Mat GetCameraCenter()
+    {
         return mOw.clone();
     }
 
     // Returns inverse of rotation
-    inline cv::Mat GetRotationInverse(){
+    inline cv::Mat GetRotationInverse()
+    {
         return mRwc.clone();
     }
 
